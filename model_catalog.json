@@ -1,0 +1,76 @@
+{
+  "id": "z-image-turbo-q4-v1",
+  "name": "Z-Image-Turbo Q4",
+  "license": "Apache-2.0",
+  "files": [
+    {
+      "role": "image",
+      "name": "z_image_turbo-Q4_0.gguf",
+      "url": "https://huggingface.co/leejet/Z-Image-Turbo-GGUF/resolve/c61c0e422dc8b541b7548cf33a4ef8302b0f8085/z_image_turbo-Q4_0.gguf",
+      "sha256": "2bc57986874c84f7ec6d02d9d7070a53b0029954a0e38a6e1342eb91095572f5",
+      "size": 3683370944,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/leejet/Z-Image-Turbo-GGUF"
+    },
+    {
+      "role": "text",
+      "name": "Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+      "url": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+      "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+      "size": 2497281120,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF"
+    },
+    {
+      "role": "vae",
+      "name": "ae.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/z_image_turbo/resolve/08d04455279082882deaabc8d0d09fc914c071e1/split_files/vae/ae.safetensors",
+      "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38",
+      "size": 335304388,
+      "license": "apache-2.0",
+      "source": "https://huggingface.co/Comfy-Org/z_image_turbo"
+    }
+  ],
+  "runtimes": {
+    "darwin-arm64-metal": {
+      "name": "sd-master-d04e895-bin-Darwin-macOS-26.6.2-arm64.zip",
+      "size": 50032742,
+      "sha256": "7dc34b46ea5299d248ca67ab6d3538575a9638fd2a24e013c6dc979cce9ca1d4",
+      "url": "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-849-d04e895/sd-master-d04e895-bin-Darwin-macOS-26.6.2-arm64.zip",
+      "license": "MIT",
+      "source": "https://github.com/leejet/stable-diffusion.cpp/tree/d04e8950c1ec8d30248cbe996682b3182fb1adf6"
+    },
+    "linux-amd64-vulkan": {
+      "name": "sd-master-d04e895-bin-Linux-Ubuntu-24.04-x86_64-vulkan.zip",
+      "size": 46155251,
+      "sha256": "972a45d783e2c6ffda543d0e7862f00829a0f7dbd9145cf3077828f9c74f2780",
+      "url": "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-849-d04e895/sd-master-d04e895-bin-Linux-Ubuntu-24.04-x86_64-vulkan.zip",
+      "license": "MIT",
+      "source": "https://github.com/leejet/stable-diffusion.cpp/tree/d04e8950c1ec8d30248cbe996682b3182fb1adf6"
+    },
+    "linux-amd64-cpu": {
+      "name": "sd-master-d04e895-bin-Linux-Ubuntu-24.04-x86_64.zip",
+      "size": 33031959,
+      "sha256": "cde88608e4cfe077be9b761abebae6be65d145befa750fbd5ad2e9521d5c5c89",
+      "url": "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-849-d04e895/sd-master-d04e895-bin-Linux-Ubuntu-24.04-x86_64.zip",
+      "license": "MIT",
+      "source": "https://github.com/leejet/stable-diffusion.cpp/tree/d04e8950c1ec8d30248cbe996682b3182fb1adf6"
+    },
+    "windows-amd64-cpu": {
+      "name": "sd-master-d04e895-bin-win-cpu-x64.zip",
+      "size": 24112084,
+      "sha256": "731208e2cde69fcf2e69e6968d30a570d47f2629d5682f51b699b60f47019abf",
+      "url": "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-849-d04e895/sd-master-d04e895-bin-win-cpu-x64.zip",
+      "license": "MIT",
+      "source": "https://github.com/leejet/stable-diffusion.cpp/tree/d04e8950c1ec8d30248cbe996682b3182fb1adf6"
+    },
+    "windows-amd64-vulkan": {
+      "name": "sd-master-d04e895-bin-win-vulkan-x64.zip",
+      "size": 38862152,
+      "sha256": "5a75237c5c6a7253b1079b03f6ec0fe1358393bf879f486887863ac31dea978e",
+      "url": "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-849-d04e895/sd-master-d04e895-bin-win-vulkan-x64.zip",
+      "license": "MIT",
+      "source": "https://github.com/leejet/stable-diffusion.cpp/tree/d04e8950c1ec8d30248cbe996682b3182fb1adf6"
+    }
+  }
+}

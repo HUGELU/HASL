@@ -1,0 +1,52 @@
+name: Validate source and native Windows image generation
+on:
+  push:
+    branches: [main, origin0-release]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - run: python3 build.py --target linux
+      - run: go test -race ./...
+      - run: go vet ./...
+      - run: node --check web/app.js && node --check web/generator.js && node --check web/evolution.js
+      - run: python3 -m unittest discover -s worker
+  windows:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[native-build]'))
+    runs-on: windows-2022
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: Build and inspect standalone native CPU runtime
+        shell: pwsh
+        run: ./scripts/build_native_windows.ps1
+      - run: python build.py --target windows
+      - run: go test ./...
+      - run: go vet ./...
+      - name: Actual app startup, setup and image generation
+        run: python scripts/verify_image_runtime.py --binary release/ORIGIN0.exe --output release/windows-acceptance --timeout 2100
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: origin0-windows-validation
+          path: |
+            release/ORIGIN0.exe
+            release/windows-acceptance/
+            bundled/origin0-sd-d04e895-windows-amd64-cpu.zip
+            native-package/imports.txt
+            model_catalog.json
+          retention-days: 14

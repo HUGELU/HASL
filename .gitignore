@@ -1,0 +1,10 @@
+origin0_data/
+DROP_HERE/
+release/
+.venv/
+__pycache__/
+*.pyc
+source_bundle.json
+source_snapshot.txt
+bundled/*.zip
+*.part
