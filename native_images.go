@@ -535,7 +535,13 @@ func (s *NativeImages) cancelJob(id string) error {
 
 func (e *Engine) nativeImageRoutes(mux *http.ServeMux) {
 	s := e.images
-	mux.HandleFunc("/api/images/state", func(w http.ResponseWriter, r *http.Request) { jsonReply(w, s.status()) })
+	mux.HandleFunc("/api/images/state", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
+		jsonReply(w, s.status())
+	})
 	mux.HandleFunc("/api/images/setup", func(w http.ResponseWriter, r *http.Request) {
 		var cfg ImageConfig
 		if err := decode(r, &cfg); err != nil {
@@ -577,6 +583,10 @@ func (e *Engine) nativeImageRoutes(mux *http.ServeMux) {
 		w.WriteHeader(204)
 	})
 	mux.HandleFunc("/api/images/diagnostics", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		w.Header().Set("Content-Disposition", "attachment; filename=ORIGIN0_DIAGNOSTICS.json")
 		// Deliberately excludes prompts, images, peer credentials and session keys.
 		s.mu.Lock()
