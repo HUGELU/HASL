@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 55
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
@@ -36,7 +37,9 @@ jobs:
           cache: false
       - name: Build and inspect standalone native CPU runtime
         shell: pwsh
-        run: ./scripts/build_native_windows.ps1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/prepare_windows_runtime.ps1
       - run: python build.py --target windows
       - run: go test ./...
       - run: go vet ./...

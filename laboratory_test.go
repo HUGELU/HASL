@@ -218,6 +218,10 @@ func TestQuotaUses64BitAndSamplingBeyond8TiB(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer f.Close()
+	if err = markTestFileSparse(f); err != nil {
+		t.Fatal("cannot prepare sparse test file:", err)
+	}
 	const n = int64(9) << 40
 	if err = f.Truncate(n); err != nil {
 		t.Fatal(err)

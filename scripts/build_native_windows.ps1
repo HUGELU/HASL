@@ -1,20 +1,20 @@
 $ErrorActionPreference = 'Stop'
 $pin = 'd04e8950c1ec8d30248cbe996682b3182fb1adf6'
-git clone --filter=blob:none --no-checkout https://github.com/leejet/stable-diffusion.cpp.git native-src
+git clone --filter=blob:none --no-checkout https://github.com/leejet/stable-diffusion.cpp.git _native-src
 if ($LASTEXITCODE -ne 0) { throw 'Backend clone failed' }
-git -C native-src checkout $pin
+git -C _native-src checkout $pin
 if ($LASTEXITCODE -ne 0) { throw 'Pinned backend checkout failed' }
-git -C native-src submodule update --init --recursive --depth 1
+git -C _native-src submodule update --init --recursive --depth 1
 if ($LASTEXITCODE -ne 0) { throw 'Pinned submodule checkout failed' }
-cmake -S native-src -B native-build -A x64 -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DSD_WEBP=OFF -DSD_WEBM=OFF -DSD_BUILD_SHARED_LIBS=OFF -DSD_BUILD_SHARED_GGML_LIB=OFF -DGGML_BACKEND_DL=OFF -DGGML_OPENMP=OFF -DGGML_NATIVE=OFF -DGGML_AVX2=ON
+cmake -S _native-src -B native-build -A x64 -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DSD_WEBP=OFF -DSD_WEBM=OFF -DSD_BUILD_SHARED_LIBS=OFF -DSD_BUILD_SHARED_GGML_LIB=OFF -DGGML_BACKEND_DL=OFF -DGGML_OPENMP=OFF -DGGML_NATIVE=OFF -DGGML_AVX2=ON
 if ($LASTEXITCODE -ne 0) { throw 'Native configure failed' }
 cmake --build native-build --config Release --target sd-cli --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Native compile failed' }
 New-Item -ItemType Directory -Force native-package | Out-Null
 Copy-Item native-build/bin/Release/sd-cli.exe native-package/sd-cli.exe
-Copy-Item native-src/LICENSE native-package/stable-diffusion.cpp-LICENSE.txt
-Copy-Item native-src/ggml/LICENSE native-package/ggml-LICENSE.txt
-Get-ChildItem native-src/thirdparty -Filter '*license*' -Recurse | ForEach-Object { Copy-Item $_.FullName ('native-package/' + $_.Directory.Name + '-' + $_.Name) }
+Copy-Item _native-src/LICENSE native-package/stable-diffusion.cpp-LICENSE.txt
+Copy-Item _native-src/ggml/LICENSE native-package/ggml-LICENSE.txt
+Get-ChildItem _native-src/thirdparty -Filter '*license*' -Recurse | ForEach-Object { Copy-Item $_.FullName ('native-package/' + $_.Directory.Name + '-' + $_.Name) }
 & native-package/sd-cli.exe --list-devices
 if ($LASTEXITCODE -ne 0) { throw 'Compiled CPU runtime failed its startup probe' }
 # Inspect actual PE imports; a /MT intention alone is not proof of portability.
