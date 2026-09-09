@@ -6,7 +6,7 @@ git -C native-src checkout $pin
 if ($LASTEXITCODE -ne 0) { throw 'Pinned backend checkout failed' }
 git -C native-src submodule update --init --recursive --depth 1
 if ($LASTEXITCODE -ne 0) { throw 'Pinned submodule checkout failed' }
-cmake -S native-src -B native-build -A x64 -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DSD_WEBP=OFF -DSD_WEBM=OFF -DSD_BUILD_SHARED_LIBS=OFF -DSD_BUILD_SHARED_GGML_LIB=OFF -DGGML_BACKEND_DL=OFF -DGGML_OPENMP=OFF -DGGML_NATIVE=OFF -DGGML_AVX2=ON
+cmake -S native-src -B native-build -A x64 -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DSD_WEBP=OFF -DSD_WEBM=OFF -DSD_BUILD_SHARED_LIBS=OFF -DSD_BUILD_SHARED_GGML_LIB=OFF -DGGML_BACKEND_DL=OFF -DGGML_OPENMP=OFF -DGGML_NATIVE=OFF -DGGML_AVX2=ON
 if ($LASTEXITCODE -ne 0) { throw 'Native configure failed' }
 cmake --build native-build --config Release --target sd-cli --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'Native compile failed' }

@@ -301,7 +301,7 @@ func nativeCommand(ctx context.Context, cli string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(ctx, cli, args...)
 	prepareNativeCommand(cmd)
 	cmd.Dir = filepath.Dir(cli)
-	cmd.Env = append(os.Environ(), "LD_LIBRARY_PATH="+filepath.Dir(cli), "GGML_BACKEND_PATH="+filepath.Dir(cli))
+	cmd.Env = append(os.Environ(), "LD_LIBRARY_PATH="+filepath.Dir(cli))
 	cmd.WaitDelay = 5 * time.Second
 	return cmd
 }

@@ -121,7 +121,7 @@ func cloneLab(g LabState) LabState {
 	return v
 }
 func (e *Engine) initLab() {
-	e.lab = LabState{Version: 1, Goal: "HUGE.lu: capture useful property leads, organise supplied evidence, and improve the steps I use most.", Branch: "main", Track: true, AutoUI: true, QuotaBytes: 100 << 30, Trials: map[string]Trial{}, Usage: map[string]Usage{}, Pins: []string{}, Snapshots: []Snapshot{}, Assets: []AssetRecord{}, Discovered: []UIBlock{}}
+	e.lab = LabState{Version: 1, Goal: "Generate useful images locally, organise supplied evidence, and improve the steps I use most.", Branch: "main", Track: true, AutoUI: true, QuotaBytes: 100 << 30, Trials: map[string]Trial{}, Usage: map[string]Usage{}, Pins: []string{}, Snapshots: []Snapshot{}, Assets: []AssetRecord{}, Discovered: []UIBlock{}}
 	for _, d := range []string{"snapshots", "objects", "catalog", "logs", "outputs"} {
 		_ = os.MkdirAll(filepath.Join(e.dataDir, d), 0700)
 	}
