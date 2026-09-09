@@ -323,6 +323,9 @@ func TestVolunteerWorkerReturnsImageWithFiniteBudget(t *testing.T) {
 func TestExpiredWorkerLeaseIsReassignedOnce(t *testing.T) {
 	e := NewEngine(t.TempDir())
 	defer e.Stop()
+	if err := e.images.pool.host("127.0.0.1:0", ""); err != nil {
+		t.Fatal(err)
+	}
 	r := testImageRequest()
 	r.Shared = true
 	j, err := e.images.submit(r)

@@ -327,6 +327,14 @@ func (s *NativeImages) submit(r ImageRequest) (ImageJob, error) {
 	if err := validateImageRequest(r); err != nil {
 		return ImageJob{}, err
 	}
+	if r.Shared {
+		s.pool.mu.Lock()
+		hosting := s.pool.server != nil
+		s.pool.mu.Unlock()
+		if !hosting {
+			return ImageJob{}, errors.New("start a worker group before submitting shared jobs")
+		}
+	}
 	s.mu.Lock()
 	if s.closed {
 		s.mu.Unlock()

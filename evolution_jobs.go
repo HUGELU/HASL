@@ -58,7 +58,7 @@ var rebuildFiles = []string{
 	"main_test.go", "laboratory_test.go", "release_test.go", "learning_test.go", "jobs_test.go",
 	"web/index.html", "web/app.js", "web/style.css", "web/evolution.js",
 	"worker/local_models.py", "worker/requirements.txt", "worker/test_worker.py",
-	"README_FIRST.txt", "SOURCE_README.md", "LOCAL_MODELS.md", "build.py",
+	"LICENSE", "README.md", "third_party/NOTICES.md", "third_party/Apache-2.0.txt", "third_party/stable-diffusion.cpp-LICENSE.txt", "README_FIRST.txt", "SOURCE_README.md", "LOCAL_MODELS.md", "build.py",
 }
 
 func (e *Engine) initEvolutionJobs() {
