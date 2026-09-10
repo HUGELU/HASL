@@ -1,0 +1,32 @@
+name: Verify portable neural upscaler
+on:
+  push:
+    branches: [origin0-finishing]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: upscale-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[upscale-check]')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - run: python scripts/build_upscaler.py
+      - run: python scripts/verify_upscaler_native.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: upscale-${{ matrix.os }}
+          path: |
+            bundled/origin0-upscale-*.zip
+            upscale_manifest.json
+            upscale-build/acceptance/
+          retention-days: 14

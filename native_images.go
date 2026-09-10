@@ -20,15 +20,16 @@ import (
 )
 
 type ImageRequest struct {
-	Prompt    string  `json:"prompt"`
-	Width     int     `json:"width"`
-	Height    int     `json:"height"`
-	Steps     int     `json:"steps"`
-	Seed      int64   `json:"seed"`
-	Shared    bool    `json:"shared"`
-	InitAsset string  `json:"init_asset,omitempty"`
-	Strength  float64 `json:"strength,omitempty"`
-	Preview   bool    `json:"preview,omitempty"`
+	Finish    *FinishOptions `json:"finish,omitempty"`
+	Prompt    string         `json:"prompt"`
+	Width     int            `json:"width"`
+	Height    int            `json:"height"`
+	Steps     int            `json:"steps"`
+	Seed      int64          `json:"seed"`
+	Shared    bool           `json:"shared"`
+	InitAsset string         `json:"init_asset,omitempty"`
+	Strength  float64        `json:"strength,omitempty"`
+	Preview   bool           `json:"preview,omitempty"`
 }
 type ImageJob struct {
 	ID         string         `json:"id"`
@@ -348,6 +349,11 @@ func validateImageRequest(r ImageRequest) error {
 	return nil
 }
 func (s *NativeImages) submit(r ImageRequest) (ImageJob, error) {
+	if r.Finish != nil {
+		if err := validFinish(*r.Finish); err != nil {
+			return ImageJob{}, err
+		}
+	}
 	if err := validateImageRequest(r); err != nil {
 		return ImageJob{}, err
 	}
@@ -438,13 +444,17 @@ func (s *NativeImages) kick() {
 	go func() {
 		defer s.wg.Done()
 		defer cancel()
-		s.e.imageBusy.Store(true)
-		result, err := s.run(ctx, cli, cfg, req, id, func(line string) {
-			s.mu.Lock()
-			job.Log = tail(job.Log+line, 16000)
-			job.Message = tail(strings.TrimSpace(line), 350)
-			s.mu.Unlock()
-		})
+		var result []byte
+		err := s.e.acquireHeavy(ctx)
+		if err == nil {
+			result, err = s.run(ctx, cli, cfg, req, id, func(line string) {
+				s.mu.Lock()
+				job.Log = tail(job.Log+line, 16000)
+				job.Message = tail(strings.TrimSpace(line), 350)
+				s.mu.Unlock()
+			})
+			s.e.releaseHeavy()
+		}
 		var a AssetRecord
 		if err == nil {
 			a, err = s.e.storeObject(bytes.NewReader(result), id+".png", "image/png", "native Z-Image-Turbo generation")
@@ -465,7 +475,11 @@ func (s *NativeImages) kick() {
 		s.active = ""
 		s.mu.Unlock()
 		s.save()
-		s.e.imageBusy.Store(false)
+		if err == nil && req.Finish != nil && s.e.finishing != nil && ctx.Err() == nil {
+			if _, finishErr := s.e.finishing.submit(FinishRequest{Asset: a.ID, FinishOptions: *req.Finish}); finishErr != nil {
+				s.e.addEvent("FINISH", finishErr.Error())
+			}
+		}
 		s.kick()
 	}()
 }

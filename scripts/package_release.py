@@ -15,9 +15,22 @@ if hashlib.sha256(revision.read_bytes()).hexdigest() != report.get('revision', {
 image = release / 'windows-acceptance/image.png'
 if hashlib.sha256(image.read_bytes()).hexdigest() != report['image']['sha256']:
     raise SystemExit('Validation image checksum mismatch')
-archive = release / 'ORIGIN0_WINDOWS_v1.6.1.zip'
+finished = release / 'windows-acceptance/finished.png'
+if not report.get('finishing', {}).get('automatic') or hashlib.sha256(finished.read_bytes()).hexdigest() != report['finishing']['sha256']:
+    raise SystemExit('Automatic neural finishing must pass before packaging')
+production = json.loads((release / 'windows-production/report.json').read_text())
+if production.get('result') != 'passed' or production.get('neural', {}).get('backend') != 'realesrgan-x4plus-cpu' or production.get('fast', {}).get('width') != 7680:
+    raise SystemExit('Standalone production tools must pass before packaging')
+archive = release / 'ORIGIN0_WINDOWS_v1.7.0.zip' 
 files = {
     'ORIGIN0.exe': release / 'ORIGIN0.exe',
+    'PRODUCTION_STUDIO.md': ROOT / 'PRODUCTION_STUDIO.md',
+    'INTEGRATION_REVIEW.md': ROOT / 'INTEGRATION_REVIEW.md',
+    'upscale_manifest.json': ROOT / 'upscale_manifest.json',
+    'validation/finished.png': finished,
+    'validation/finish-recipe.json': release / 'windows-acceptance/finish-recipe.json',
+    'validation/finish.log': release / 'windows-acceptance/finish.log',
+    'validation/upscaler-imports.txt': ROOT / 'upscale-build/imports.txt',
     'README_FIRST.txt': ROOT / 'README_FIRST.txt',
     'LICENSE': ROOT / 'LICENSE',
     'RELEASE_NOTES.md': ROOT / 'RELEASE_NOTES.md',
@@ -36,6 +49,12 @@ files = {
     'validation/generation.log': release / 'windows-acceptance/generation.log',
     'validation/runtime-imports.txt': ROOT / 'native-package/imports.txt',
 }
+for path in (release / 'source-validation/release').rglob('*'):
+    if path.is_file():
+        files['validation/source/' + path.relative_to(release / 'source-validation/release').as_posix()] = path
+for path in (release / 'windows-production').rglob('*'):
+    if path.is_file():
+        files['validation/production/' + path.relative_to(release / 'windows-production').as_posix()] = path
 for path in (ROOT / 'third_party').rglob('*'):
     if path.is_file():
         files[path.relative_to(ROOT).as_posix()] = path
@@ -44,7 +63,9 @@ with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as bun
         bundle.write(path, 'ORIGIN0/' + name)
 assets = [release / 'ORIGIN0.exe', archive,
           ROOT / 'bundled/origin0-sd-d04e895-windows-amd64-cpu.zip',
-          ROOT / 'model_catalog.json']
+          ROOT / 'model_catalog.json', release / 'upscale_manifest.json',
+          ROOT / 'bundled/origin0-upscale-windows-amd64.zip',
+          ROOT / 'bundled/origin0-upscale-linux-amd64.zip']
 (release / 'SHA256SUMS.txt').write_text(''.join(
     hashlib.sha256(p.read_bytes()).hexdigest() + '  ' + p.name + '\n'
     for p in assets), encoding='utf-8')

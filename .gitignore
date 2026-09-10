@@ -8,3 +8,6 @@ source_bundle.json
 source_snapshot.txt
 bundled/*.zip
 *.part
+
+upscale-build/
+native-package/
