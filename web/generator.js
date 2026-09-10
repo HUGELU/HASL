@@ -22,7 +22,7 @@ async function refreshNative(){
    const visible=new Set(shown.map(j=>j.asset?.id));for(const [id,u]of nativeImages){if(!visible.has(id)){URL.revokeObjectURL(u);nativeImages.delete(id)}}
   }
   for(const el of document.querySelectorAll('[data-time-job]')){const j=jobs.find(x=>x.id===el.dataset.timeJob);if(j)el.textContent=nativeDuration(j)}
-  $('pool-address').textContent=p.address||'Group is stopped';$('pool-host').disabled=p.hosting;$('pool-stop').disabled=!p.hosting;$('pool-invite').disabled=!p.hosting;$('pool-join').disabled=p.joined;$('pool-leave').disabled=!p.joined;
+  $('pool-address').textContent=p.relay_status||p.address||'Group is stopped';$('pool-host').disabled=p.hosting;$('pool-stop').disabled=!p.hosting;$('pool-invite').disabled=!p.hosting;$('pool-join').disabled=p.joined;$('pool-leave').disabled=!p.joined;
   $('pool-worker-status').textContent=p.worker_status+` · ${p.completed}/${p.budget} completed`;$('pool-peers').innerHTML=(p.peers||[]).map(x=>`<div class="item"><b>${esc(x.name)}</b><p class="hint">${x.completed} images returned · ${x.seen?'last seen '+stamp(x.seen):'waiting for invitation to be used'}</p></div>`).join('');
  }catch(e){$('image-setup-status').textContent='Cannot reach ORIGIN-0: '+e.message}finally{nativeRefreshBusy=false}
 }
@@ -39,3 +39,5 @@ $('pool-stop').addEventListener('click',run(async()=>{await api('/api/pool/actio
 $('pool-join-form').addEventListener('submit',run(async e=>{e.preventDefault();await api('/api/pool/action',{action:'join',invite:$('pool-invite-input').value,name:$('pool-worker-name').value,budget:Number($('pool-budget').value)});$('pool-invite-input').value='';await refreshNative()}));
 $('pool-leave').addEventListener('click',run(async()=>{await api('/api/pool/action',{action:'leave'});await refreshNative()}));
 refreshNative();setInterval(refreshNative,1500);
+
+$('pool-relay-form').addEventListener('submit',run(async e=>{e.preventDefault();try{await api('/api/pool/action',{action:'host-internet',relay_url:$('pool-relay-url').value,relay_key:$('pool-relay-key').value});toast('Internet group started. Create a private invitation for each worker.');await refreshNative()}finally{$('pool-relay-key').value=''}}));

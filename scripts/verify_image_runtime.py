@@ -71,7 +71,7 @@ def main():
         if not base:
             raise RuntimeError('No usable local interface address was printed')
         state = api('/api/state')
-        assert state['version'].startswith('1.5')
+        assert state['version'].startswith('1.6')
         api('/api/compute', {'paused': True})
         api('/api/images/setup', {'backend': 'cpu', 'threads': min(4, os.cpu_count() or 1), 'max_minutes': 20})
         last = None

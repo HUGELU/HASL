@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parent
-FILES = ['go.mod','main.go','laboratory.go','media.go','learning.go','adaptive_kernel.go','evolution_jobs.go',
+FILES = ['concept_contributions.go', 'concept_contributions_test.go', 'internet_relay.go', 'internet_relay_test.go', 'INTERNET_RELAY.md', 'concept_studio.go', 'concept_studio_test.go', 'web/concepts.js', 'web/concepts.css', 'TECHNOLOGY_REPORT.md', 'CONCEPT_STUDIO.md', 'go.mod','main.go','laboratory.go','media.go','learning.go','adaptive_kernel.go','evolution_jobs.go',
  'native_images.go','downloads.go','compute_pool.go','native_images_test.go','native_process_windows.go','native_process_other.go',
  'model_catalog.json','bundled/README.txt','web/generator.js','web/generator.css',
  'sparse_windows_test.go','sparse_other_test.go','main_test.go','laboratory_test.go','release_test.go','learning_test.go','jobs_test.go',
@@ -21,7 +21,7 @@ def main():
     args = p.parse_args()
     bundle = {name: (ROOT / name).read_text(encoding='utf-8') for name in FILES}
     (ROOT / 'source_bundle.json').write_text(json.dumps(bundle, sort_keys=True), encoding='utf-8')
-    text = 'ORIGIN-0 v1.5: exact source snapshot embedded at build time.\n'
+    text = 'ORIGIN-0 v1.6: exact source snapshot embedded at build time.\n'
     for name in FILES:
         text += '\n===== ' + name + ' =====\n' + (ROOT / name).read_text(encoding='utf-8')
     (ROOT / 'source_snapshot.txt').write_text(text, encoding='utf-8')

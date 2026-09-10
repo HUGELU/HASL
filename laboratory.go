@@ -78,6 +78,7 @@ type AssetRecord struct {
 	Source  string `json:"source"`
 }
 type LabState struct {
+	Studio        ConceptState        `json:"studio"`
 	Learning      LearningState       `json:"learning"`
 	Jobs          []EvolutionJob      `json:"jobs"`
 	ActiveAdapter string              `json:"active_adapter"`
@@ -165,6 +166,9 @@ func (e *Engine) Stop() {
 		close(e.stop)
 		e.paused.Store(true)
 		e.images.close()
+		if e.studio != nil {
+			e.studio.close()
+		}
 		e.stopEvolutionJobs()
 		e.wg.Wait()
 		e.persist()
@@ -601,7 +605,7 @@ func (e *Engine) laboratoryHandler() http.Handler {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(b)
 	})
-	for _, file := range []string{"app.js", "style.css", "evolution.js", "generator.js", "generator.css"} {
+	for _, file := range []string{"app.js", "style.css", "evolution.js", "generator.js", "generator.css", "concepts.js", "concepts.css"} {
 		f := file
 		mux.HandleFunc("/"+f, func(w http.ResponseWriter, r *http.Request) {
 			b, _ := assets.ReadFile("web/" + f)
@@ -1017,6 +1021,8 @@ func (e *Engine) laboratoryHandler() http.Handler {
 	e.learningRoutes(mux)
 	e.evolutionRoutes(mux)
 	e.nativeImageRoutes(mux)
+	e.conceptRoutes(mux)
+	e.contributionRoutes(mux)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "no-referrer")

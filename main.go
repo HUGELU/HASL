@@ -231,6 +231,7 @@ type PersistState struct {
 }
 
 type Engine struct {
+	studio              *ConceptStudio
 	images              *NativeImages
 	imageBusy           atomic.Bool
 	learningMu          sync.Mutex
@@ -394,6 +395,7 @@ func NewEngine(base string) *Engine {
 	e.initLearning()
 	e.initEvolutionJobs()
 	e.images = newNativeImages(e)
+	e.studio = newConceptStudio(e)
 	e.detectGPU()
 	e.addEvent("BOOT", "Standalone engine initialized; no external runtime required.")
 	return e
@@ -1321,7 +1323,7 @@ func (e *Engine) consoleLoop() {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	fmt.Println("============================================================")
-	fmt.Println("ORIGIN-0 STANDALONE v1.5 - LIVE COGNITIVE ENGINE")
+	fmt.Println("ORIGIN-0 STANDALONE v1.6 - LIVE COGNITIVE ENGINE")
 	fmt.Println("No Python. No pip. No external runtime.")
 	fmt.Println("============================================================")
 	for {
@@ -1442,6 +1444,7 @@ func (e *Engine) view() StateView {
 	}
 	labSummary := e.lab
 	labSummary.Learning = LearningState{}
+	labSummary.Studio = ConceptState{}
 	labSummary.Jobs = nil
 	return StateView{Lab: cloneLab(labSummary), Version: "1.5-native-images", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
 }
@@ -1520,6 +1523,13 @@ func listenLocal() (net.Listener, string, error) {
 
 func main() {
 	log.SetFlags(log.Ltime | log.Lmicroseconds)
+	if os.Getenv("ORIGIN0_RELAY_MODE") == "1" {
+		if err := runInternetRelay(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
 	base := writableBase()
 	e := NewEngine(base)
 	ln, addr, err := listenLocal()

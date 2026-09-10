@@ -12,12 +12,15 @@ if report.get('result') != 'passed' or report.get('real_diffusion') is not True:
 image = release / 'windows-acceptance/image.png'
 if hashlib.sha256(image.read_bytes()).hexdigest() != report['image']['sha256']:
     raise SystemExit('Validation image checksum mismatch')
-archive = release / 'ORIGIN0_WINDOWS_v1.5.zip'
+archive = release / 'ORIGIN0_WINDOWS_v1.6.zip'
 files = {
     'ORIGIN0.exe': release / 'ORIGIN0.exe',
     'README_FIRST.txt': ROOT / 'README_FIRST.txt',
     'LICENSE': ROOT / 'LICENSE',
     'RELEASE_NOTES.md': ROOT / 'RELEASE_NOTES.md',
+    'CONCEPT_STUDIO.md': ROOT / 'CONCEPT_STUDIO.md',
+    'INTERNET_RELAY.md': ROOT / 'INTERNET_RELAY.md',
+    'TECHNOLOGY_REPORT.md': ROOT / 'TECHNOLOGY_REPORT.md',
     'model_catalog.json': ROOT / 'model_catalog.json',
     'validation/report.json': release / 'windows-acceptance/report.json',
     'validation/image.png': image,
