@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-//go:embed web/* worker/* bundled/* model_catalog.json source_snapshot.txt source_bundle.json LOCAL_MODELS.md
+//go:embed web/* worker/* bundled/* model_catalog.json upscale_manifest.json source_snapshot.txt source_bundle.json LOCAL_MODELS.md
 var assets embed.FS
 
 type Concept struct {
@@ -231,6 +231,9 @@ type PersistState struct {
 }
 
 type Engine struct {
+	finishing           *Finishing
+	development         *Development
+	heavy               chan struct{}
 	studio              *ConceptStudio
 	images              *NativeImages
 	imageBusy           atomic.Bool
@@ -396,7 +399,10 @@ func NewEngine(base string) *Engine {
 	e.repairLoadedState()
 	e.initLearning()
 	e.initEvolutionJobs()
+	e.heavy = make(chan struct{}, 1)
 	e.images = newNativeImages(e)
+	e.finishing = newFinishing(e)
+	e.development = newDevelopment(e)
 	e.studio = newConceptStudio(e)
 	e.detectGPU()
 	e.addEvent("BOOT", "Standalone engine initialized; no external runtime required.")

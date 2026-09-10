@@ -166,8 +166,14 @@ func (e *Engine) Stop() {
 		close(e.stop)
 		e.paused.Store(true)
 		e.images.close()
+		if e.finishing != nil {
+			e.finishing.close()
+		}
 		if e.studio != nil {
 			e.studio.close()
+		}
+		if e.development != nil {
+			e.development.close()
 		}
 		e.stopEvolutionJobs()
 		e.wg.Wait()
@@ -605,7 +611,7 @@ func (e *Engine) laboratoryHandler() http.Handler {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(b)
 	})
-	for _, file := range []string{"app.js", "style.css", "evolution.js", "generator.js", "generator.css", "concepts.js", "concepts.css", "privacy.js", "studio_tools.js"} {
+	for _, file := range []string{"app.js", "style.css", "evolution.js", "generator.js", "generator.css", "concepts.js", "concepts.css", "privacy.js", "studio_tools.js", "production.js", "architecture.js", "development.js"} {
 		f := file
 		mux.HandleFunc("/"+f, func(w http.ResponseWriter, r *http.Request) {
 			b, _ := assets.ReadFile("web/" + f)
@@ -1021,6 +1027,9 @@ func (e *Engine) laboratoryHandler() http.Handler {
 	e.learningRoutes(mux)
 	e.evolutionRoutes(mux)
 	e.nativeImageRoutes(mux)
+	e.finishingRoutes(mux)
+	e.architectureRoutes(mux)
+	e.developmentRoutes(mux)
 	e.conceptRoutes(mux)
 	e.contributionRoutes(mux)
 	e.privacyRoutes(mux)

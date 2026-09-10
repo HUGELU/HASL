@@ -1,1 +1,24 @@
-{"schema":"origin0.upscale.v1","model":"Real-ESRGAN-x4plus","scale":4,"runtimes":{}}
+{
+  "schema": "origin0.upscale.v1",
+  "model": "Real-ESRGAN-x4plus",
+  "scale": 4,
+  "model_archive_sha256": "abc02804e17982a3be33675e4d471e91ea374e65b70167abc09e31acb412802d",
+  "runtimes": {
+    "linux-amd64": {
+      "name": "origin0-upscale-linux-amd64.zip",
+      "size": 36989972,
+      "sha256": "29af747f8584dbd1d9d7f21662dcf17ff1028a371ea2f1585fec21edacbc2328",
+      "url": "https://github.com/HUGELU/HASL/releases/download/v1.7.0/origin0-upscale-linux-amd64.zip",
+      "license": "NCNN BSD-3-Clause; Real-ESRGAN BSD-3-Clause",
+      "source": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip"
+    },
+    "windows-amd64": {
+      "name": "origin0-upscale-windows-amd64.zip",
+      "size": 34368273,
+      "sha256": "cb125fb2ee1a202155141b432f9f32e81c98c774a8f5b129c42e401bbf234d84",
+      "url": "https://github.com/HUGELU/HASL/releases/download/v1.7.0/origin0-upscale-windows-amd64.zip",
+      "license": "NCNN BSD-3-Clause; Real-ESRGAN BSD-3-Clause",
+      "source": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip"
+    }
+  }
+}

@@ -53,6 +53,17 @@ type JobRequest struct {
 }
 
 var rebuildFiles = []string{
+	"production_test.go",
+	"architecture.go",
+	"development.go",
+	"web/architecture.js",
+	"web/development.js",
+
+	"finishing.go",
+	"finish_pixels.go",
+	"upscale_manifest.json",
+	"web/production.js",
+
 	"hardware.go", "hardware_windows.go", "hardware_other.go", "privacy.go", "studio_tools.go", "studio_tools_test.go", "privacy_test.go", "web/privacy.js", "web/studio_tools.js",
 	"concept_contributions.go", "concept_contributions_test.go",
 	"internet_relay.go", "internet_relay_test.go", "INTERNET_RELAY.md",
@@ -255,10 +266,14 @@ func (e *Engine) startEvolutionJob(req JobRequest) (EvolutionJob, error) {
 		defer cancel()
 		log, err := os.OpenFile(filepath.Join(dir, "run.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 		if err == nil {
-			if req.Kind == "rebuild" {
-				err = e.runRebuild(ctx, cfg, req, id, dir, log)
-			} else {
-				err = e.runLocalModel(ctx, cfg, req, id, dir, log)
+			err = e.acquireHeavy(ctx)
+			if err == nil {
+				if req.Kind == "rebuild" {
+					err = e.runRebuild(ctx, cfg, req, id, dir, log)
+				} else {
+					err = e.runLocalModel(ctx, cfg, req, id, dir, log)
+				}
+				e.releaseHeavy()
 			}
 			_ = log.Close()
 		}

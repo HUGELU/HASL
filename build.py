@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parent
-FILES = ['hardware.go', 'hardware_windows.go', 'hardware_other.go', 'privacy.go', 'studio_tools.go', 'studio_tools_test.go', 'privacy_test.go', 'web/privacy.js', 'web/studio_tools.js', 'concept_contributions.go', 'concept_contributions_test.go', 'internet_relay.go', 'internet_relay_test.go', 'INTERNET_RELAY.md', 'concept_studio.go', 'concept_studio_test.go', 'web/concepts.js', 'web/concepts.css', 'MODEL_GUIDE.md', 'TECHNOLOGY_REPORT.md', 'CONCEPT_STUDIO.md', 'go.mod','main.go','laboratory.go','media.go','learning.go','adaptive_kernel.go','evolution_jobs.go',
+FILES = ['production_test.go', 'architecture.go', 'development.go', 'web/architecture.js', 'web/development.js', 'finishing.go', 'finish_pixels.go', 'upscale_manifest.json', 'web/production.js', 'hardware.go', 'hardware_windows.go', 'hardware_other.go', 'privacy.go', 'studio_tools.go', 'studio_tools_test.go', 'privacy_test.go', 'web/privacy.js', 'web/studio_tools.js', 'concept_contributions.go', 'concept_contributions_test.go', 'internet_relay.go', 'internet_relay_test.go', 'INTERNET_RELAY.md', 'concept_studio.go', 'concept_studio_test.go', 'web/concepts.js', 'web/concepts.css', 'MODEL_GUIDE.md', 'TECHNOLOGY_REPORT.md', 'CONCEPT_STUDIO.md', 'go.mod','main.go','laboratory.go','media.go','learning.go','adaptive_kernel.go','evolution_jobs.go',
  'native_images.go','downloads.go','compute_pool.go','native_images_test.go','native_process_windows.go','native_process_other.go',
  'model_catalog.json','bundled/README.txt','web/generator.js','web/generator.css',
  'sparse_windows_test.go','sparse_other_test.go','main_test.go','laboratory_test.go','release_test.go','learning_test.go','jobs_test.go',

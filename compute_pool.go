@@ -279,6 +279,9 @@ func (p *ComputePool) handler() http.Handler {
 			job.Finished = now()
 			job.Message = "Image returned by " + peer.Name
 			job.Lease = ""
+			if job.Request.Finish != nil && s.e.finishing != nil {
+				_, _ = s.e.finishing.submit(FinishRequest{Asset: a.ID, FinishOptions: *job.Request.Finish})
+			}
 			p.mu.Lock()
 			for _, x := range p.members {
 				if x.ID == peer.ID {
@@ -558,10 +561,8 @@ func (p *ComputePool) runPeer(parent context.Context, c *http.Client, v PoolInvi
 		s.cancel = nil
 		s.active = ""
 		s.mu.Unlock()
-		s.e.imageBusy.Store(false)
 		s.kick()
 	}()
-	s.e.imageBusy.Store(true)
 	var heartbeat sync.WaitGroup
 	heartbeat.Add(1)
 	go func() {
@@ -576,7 +577,12 @@ func (p *ComputePool) runPeer(parent context.Context, c *http.Client, v PoolInvi
 			}
 		}
 	}()
-	b, err := s.run(ctx, cli, cfg, j.Request, "worker-"+j.ID, func(line string) { p.workerMessage("Computing " + j.ID + ": " + tail(strings.TrimSpace(line), 300)) })
+	var b []byte
+	err := s.e.acquireHeavy(ctx)
+	if err == nil {
+		b, err = s.run(ctx, cli, cfg, j.Request, "worker-"+j.ID, func(line string) { p.workerMessage("Computing " + j.ID + ": " + tail(strings.TrimSpace(line), 300)) })
+		s.e.releaseHeavy()
+	}
 	if err == nil {
 		_, err = poolPost(ctx, c, v, "/pool/result", b, map[string]string{"Content-Type": "image/png", "X-Job-ID": j.ID, "X-Job-Lease": lease})
 	}

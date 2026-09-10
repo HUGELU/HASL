@@ -8,7 +8,7 @@ ROOT=Path(__file__).resolve().parents[1]
 NCNN_URL='https://github.com/Tencent/ncnn/releases/download/20260526/ncnn-20260526-full-source.zip'
 NCNN_SHA='754659d6fe65545cf2ef4483ffb84526fea631f8764c44b150f1601d0fb4004b'
 MODEL_URL='https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip'
-MODEL_SHA=''  # Filled from the first official archive inspection before release.
+MODEL_SHA='abc02804e17982a3be33675e4d471e91ea374e65b70167abc09e31acb412802d'  # Filled from the first official archive inspection before release.
 def fetch(url,path,digest):
     if not path.exists():
         with urllib.request.urlopen(url,timeout=90) as r, path.open('wb') as f:shutil.copyfileobj(r,f)
