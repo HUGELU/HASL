@@ -29,6 +29,7 @@ type PlanRoom struct {
 type ArchitectureView struct {
 	Asset   string `json:"asset"`
 	Label   string `json:"label"`
+	Room    string `json:"room,omitempty"`
 	Seconds int    `json:"seconds"`
 }
 type ArchitectureProject struct {
@@ -64,6 +65,7 @@ func validateArchitecture(p ArchitectureProject) error {
 		}
 		for j := 0; j < i; j++ {
 			b := p.Rooms[j]
+			if r.Name == b.Name { return errors.New("use distinct room names so reference views can identify their room") }
 			if math.Min(r.X+r.W, b.X+b.W)-math.Max(r.X, b.X) > 1e-6 && math.Min(r.Y+r.H, b.Y+b.H)-math.Max(r.Y, b.Y) > 1e-6 {
 				return fmt.Errorf("rooms %s and %s overlap", r.Name, b.Name)
 			}
@@ -72,6 +74,11 @@ func validateArchitecture(p ArchitectureProject) error {
 	for _, v := range p.Views {
 		if len(v.Asset) != 64 || len(v.Label) > 100 || v.Seconds < 1 || v.Seconds > 10 {
 			return errors.New("each view needs a stored image and 1–10 second duration")
+		}
+		if v.Room != "" {
+			found := false
+			for _, r := range p.Rooms { if r.Name == v.Room { found = true } }
+			if !found { return errors.New("a view refers to a room missing from this project") }
 		}
 	}
 	return nil
@@ -164,7 +171,9 @@ func (e *Engine) walkthroughHTML(ctx context.Context, p ArchitectureProject) (st
 		if total > 48<<20 {
 			return "", errors.New("walkthrough exceeds 48 MiB of embedded images")
 		}
-		frames = append(frames, frame{"data:image/png;base64," + base64.StdEncoding.EncodeToString(buf.Bytes()), v.Label, v.Seconds})
+		label := v.Label
+		if v.Room != "" { label = v.Room + " · " + label }
+		frames = append(frames, frame{"data:image/png;base64," + base64.StdEncoding.EncodeToString(buf.Bytes()), label, v.Seconds})
 	}
 	data, _ := json.Marshal(frames)
 	parts := strings.SplitN(walkthroughTemplate, "__FRAMES__", 2)
@@ -180,6 +189,15 @@ function stop(){running=false;cancelAnimationFrame(raf);if(rec?.state==='recordi
 </script></html>`
 
 func (e *Engine) architectureRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("/api/architecture/save", func(w http.ResponseWriter, r *http.Request) {
+		var p ArchitectureProject
+		if err := decode(r, &p); err != nil { apiError(w, err); return }
+		if err := validateArchitecture(p); err != nil { apiError(w, err); return }
+		for _, v := range p.Views { if _, err := e.objectPath(v.Asset); err != nil { apiError(w, err); return } }
+		a, err := e.architectureRecipe(p)
+		if err != nil { apiError(w, err); return }
+		jsonReply(w, a)
+	})
 	mux.HandleFunc("/api/architecture/project", func(w http.ResponseWriter, r *http.Request) {
 		b, err := os.ReadFile(filepath.Join(e.dataDir, "architecture.json"))
 		if err != nil {

@@ -1,4 +1,4 @@
-ORIGIN-0 v1.6.1 — LOCAL IMAGE STUDIO
+ORIGIN-0 v1.7.0 — LOCAL IMAGE STUDIO
 
 WINDOWS FIRST RUN
 1. Put ORIGIN0.exe in a normal folder and double-click it.
@@ -46,6 +46,14 @@ The legacy research, interface and classifier experiments are still available.
 They do not establish automatic improvement of the image model's weights.
 
 NEW CONTROLS
+Production: upload a photo and choose Fast or Learned finishing, with a final
+long edge up to 7680 pixels. The neural runtime and weights are embedded; this
+part requires no first-run model download. Originals and recipes are retained.
+Add measured rooms for an SVG floor plan. Add ordered reference photos for an
+offline photo walkthrough and WebM export. These are photo sequences, not 3D scans.
+Use an installed local coding model for source proposals. Optional executable
+tests need a separately configured Docker sandbox. See PRODUCTION_STUDIO.md.
+
 Concept Studio collects and reviews image examples and evaluates small classifiers.
 Image studio now offers one-image revision, rough previews, batches, ratings and
 saved settings. Hardware defaults are suggestions, not certified performance.

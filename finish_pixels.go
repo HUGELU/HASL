@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"image"
-	"image/color"
+	"image/draw"
 	"math"
 	"sync"
 )
@@ -116,11 +116,7 @@ func resizeFinish(ctx context.Context, src *image.NRGBA, w, h, workers int) (*im
 func finishNRGBA(src image.Image) *image.NRGBA {
 	b := src.Bounds()
 	out := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-	for y := 0; y < b.Dy(); y++ {
-		for x := 0; x < b.Dx(); x++ {
-			out.SetNRGBA(x, y, color.NRGBAModel.Convert(src.At(b.Min.X+x, b.Min.Y+y)).(color.NRGBA))
-		}
-	}
+	draw.Draw(out, out.Bounds(), src, b.Min, draw.Src)
 	return out
 }
 func finishDimensions(w, h, long int) (int, int, error) {

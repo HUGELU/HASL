@@ -24,3 +24,10 @@ ORIGIN-0 or claim the licences have no obligations.
 Older optional SDXL models have different terms and are not part of the default
 model pack. The separate optional Python worker's requirements retain their
 upstream licences.
+
+Neural finishing: original Real-ESRGAN x4plus NCNN weights from Xintao Wang,
+BSD-3-Clause. See Real-ESRGAN-LICENSE.txt. NCNN is BSD-3-Clause; its licence
+notices are retained in the packaged runtime. ORIGIN's small native host is MIT.
+Exact source/model download hashes appear in scripts/build_upscaler.py, and the
+compiled archive hash appears in upscale_manifest.json. Neither the proprietary
+Higgsfield service nor Autom8AI's MuAPI UI code is incorporated into this binary.

@@ -71,7 +71,7 @@ def main():
         if not base:
             raise RuntimeError('No usable local interface address was printed')
         state = api('/api/state')
-        assert state['version'].startswith('1.6')
+        assert state['version'].startswith('1.7')
         api('/api/compute', {'paused': True})
         api('/api/images/setup', {'backend': 'cpu', 'threads': min(4, os.cpu_count() or 1), 'max_minutes': 20})
         last = None
@@ -107,7 +107,7 @@ def main():
         report = {'result': 'passed', 'real_diffusion': True, 'version': state['version'], 'platform': current['platform'], 'model_pack': catalog['id'], 'image': {'width': 256, 'height': 256, 'steps': 1, 'seed': 42, 'sha256': hashlib.sha256(image).hexdigest()}, 'elapsed_seconds': round(time.monotonic() - start, 2), 'devices': current['setup']['devices'], 'checks': ['native app startup', 'authenticated API', 'pinned model setup', 'native process execution', 'job completed', 'PNG persisted and downloaded']}
         reference = found['asset']['id']
         start_edit = time.monotonic()
-        edit = api('/api/images/generate', {'prompt': 'A photograph of an orange cat on a blue chair in soft warm light.', 'width': 256, 'height': 256, 'steps': 4, 'seed': 43, 'init_asset': reference, 'strength': .5, 'preview': True})
+        edit = api('/api/images/generate', {'prompt': 'A photograph of an orange cat on a blue chair in soft warm light.', 'width': 256, 'height': 256, 'steps': 4, 'seed': 43, 'init_asset': reference, 'strength': .5, 'preview': True, 'finish': {'mode':'neural','long_edge':1024,'sharpness':.1,'detail':.8,'backend':'cpu'}})
         preview_seen = False
         while time.monotonic() < deadline:
             current = api('/api/images/state', {})
@@ -135,6 +135,30 @@ def main():
         metadata = api('/api/images/metadata', {'id': edit['id']})
         assert metadata['request']['init_asset'] == reference and metadata['schema'] == 'origin0.image.v1'
         report['checks'] += ['native image-to-image revision', 'changed PNG persisted', 'reference metadata round-trip']
+        start_finish = time.monotonic()
+        while time.monotonic() < deadline:
+            jobs = api('/api/finish/state', {})['jobs']
+            candidates = [j for j in jobs if j['request']['asset'] == edited['asset']['id']]
+            if candidates:
+                finished = candidates[-1]
+                if finished['status'] == 'completed':
+                    break
+                if finished['status'] not in ('queued', 'running'):
+                    raise RuntimeError('Automatic finishing failed: ' + finished['message'])
+            time.sleep(.5)
+        else:
+            raise RuntimeError('Automatic finishing exceeded the release deadline')
+        final_image = api('/api/asset?id=' + finished['asset']['id'])
+        assert struct.unpack('>II', final_image[16:24]) == (1024, 1024)
+        assert finished['backend'] == 'realesrgan-x4plus-cpu'
+        (output / 'finished.png').write_bytes(final_image)
+        recipe = api('/api/asset?id=' + finished['recipe']['id'])
+        if isinstance(recipe, bytes):
+            recipe = json.loads(recipe)
+        (output / 'finish-recipe.json').write_text(json.dumps(recipe, indent=2))
+        (output / 'finish.log').write_text(finished['log'])
+        report['finishing'] = {'sha256':hashlib.sha256(final_image).hexdigest(), 'width':1024, 'height':1024, 'backend':finished['backend'], 'seconds':finished['seconds'], 'automatic':True}
+        report['checks'] += ['generated revision automatically queued for neural finishing', 'actual 1024px learned result and recipe persisted']
         (output / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
         print(json.dumps(report), flush=True)
     except Exception:

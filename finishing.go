@@ -132,8 +132,11 @@ func (s *Finishing) source(id string) (*image.NRGBA, error) {
 		return nil, errors.New("source checksum mismatch")
 	}
 	cfg, format, err := image.DecodeConfig(bytes.NewReader(b))
-	if err != nil || (format != "png" && format != "jpeg") || cfg.Width < 1 || cfg.Height < 1 || int64(cfg.Width)*int64(cfg.Height) > 16_000_000 {
-		return nil, errors.New("choose a valid PNG/JPEG below 16 megapixels")
+	if err != nil || (format != "png" && format != "jpeg") || cfg.Width < 1 || cfg.Height < 1 || int64(cfg.Width)*int64(cfg.Height) > 60_000_000 {
+		return nil, errors.New("choose a valid PNG/JPEG below 60 megapixels")
+	}
+	if mem := physicalMemory(); mem > 0 && int64(cfg.Width)*int64(cfg.Height)*12 > int64(mem/4) {
+		return nil, errors.New("source decoding needs more working memory; use a smaller source image")
 	}
 	im, _, err := image.Decode(bytes.NewReader(b))
 	if err != nil {

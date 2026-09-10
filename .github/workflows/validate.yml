@@ -1,7 +1,7 @@
 name: Validate source and native Windows image generation
 on:
   push:
-    branches: [main, origin0-release, origin0-concept-studio]
+    branches: [main, origin0-release, origin0-finishing]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   superseded:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-concept-studio'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-finishing'
     runs-on: ubuntu-24.04
     permissions:
       actions: write
@@ -24,7 +24,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import json, os, subprocess
-          runs = json.loads(subprocess.check_output(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/runs?branch=origin0-concept-studio&event=push&per_page=20']))['workflow_runs']
+          runs = json.loads(subprocess.check_output(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/runs?branch=origin0-finishing&event=push&per_page=20']))['workflow_runs']
           current = int(os.environ['GITHUB_RUN_ID'])
           for run in runs:
               if run['id'] < current and run['status'] in ('queued', 'in_progress'):
@@ -32,17 +32,47 @@ jobs:
           PY
   source:
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
         with:
           go-version: '1.27.1'
           cache: false
+      - name: Prepare verified neural runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/prepare_upscaler.py
       - run: python3 build.py --target linux
       - run: go test -race ./...
       - run: go vet ./...
-      - run: node --check web/app.js && node --check web/generator.js && node --check web/evolution.js && node --check web/concepts.js && node --check web/privacy.js && node --check web/studio_tools.js
+      - name: Verify a candidate inside the actual restricted Docker container
+        shell: bash
+        run: |
+          docker pull golang:1.27.1
+          ORIGIN0_TEST_DOCKER_IMAGE=$(docker image inspect golang:1.27.1 --format '{{index .RepoDigests 0}}')
+          export ORIGIN0_TEST_DOCKER_IMAGE
+          ORIGIN0_TEST_DOCKER=$(command -v docker)
+          export ORIGIN0_TEST_DOCKER
+          mkdir -p release/container-acceptance
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('release/container-acceptance/image.json').write_text(json.dumps({'image':os.environ['ORIGIN0_TEST_DOCKER_IMAGE']}))
+          PY
+          go test -v -run '^TestCandidateInRealDockerSandbox$' . | tee release/container-acceptance/test.log
+      - name: Exercise actual finishing and property exports
+        run: python3 scripts/verify_production_api.py --binary release/origin0-linux-amd64
+      - name: Parse all browser scripts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          for p in Path('web').glob('*.js'): subprocess.run(['node', '--check', str(p)], check=True)
+          PY
       - run: python3 -m unittest discover -s worker
       - name: Install isolated browser test dependencies
         run: |
@@ -50,11 +80,19 @@ jobs:
           python3 -m playwright install --with-deps chromium
       - name: Exercise Concept Studio in Chromium
         run: python3 scripts/verify_concept_browser.py --binary release/origin0-linux-amd64
+      - name: Exercise Production Studio and export an actual video
+        run: python3 scripts/verify_production_browser.py --binary release/origin0-linux-amd64
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: origin0-concept-browser-validation
-          path: release/browser-acceptance/
+          name: origin0-production-source-validation
+          path: |
+            release/browser-acceptance/
+            release/production-acceptance/
+            release/production-browser/
+            release/container-acceptance/
+            bundled/origin0-upscale-linux-amd64.zip
+            upscale_manifest.json
           retention-days: 14
   windows:
     needs: source
@@ -75,26 +113,44 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: ./scripts/prepare_windows_runtime.ps1
+      - name: Prepare portable neural finishing runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/prepare_upscaler.py
+      - name: Inspect neural Windows loader dependencies
+        shell: pwsh
+        run: |
+          $dumpbin = Get-ChildItem 'C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/*/bin/Hostx64/x64/dumpbin.exe' | Select-Object -Last 1
+          if (-not $dumpbin) { throw 'dumpbin verification unavailable' }
+          $imports = & $dumpbin.FullName /dependents upscale-build/package/origin0-upscale.exe | Out-String
+          $imports | Set-Content upscale-build/imports.txt
+          if ($imports -match '(?i)MSVCP\d+|VCRUNTIME\d+|vcomp\d+|ncnn\.dll') { throw 'Unbundled neural runtime dependency found' }
       - run: python build.py --target windows
       - run: go test ./...
       - run: go vet ./...
       - name: Actual app startup, setup and image generation
         run: python scripts/verify_image_runtime.py --binary release/ORIGIN0.exe --output release/windows-acceptance --timeout 2100
+      - name: Actual standalone finishing and property tools
+        run: python scripts/verify_production_api.py --binary release/ORIGIN0.exe --output release/windows-production
+      - name: Collect this run's passed source and browser evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/collect_source_evidence.py
       - name: Package verified Windows release
         run: python scripts/package_release.py
       - name: Publish tested preview release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-concept-studio' && contains(github.event.head_commit.message, '[publish-release]')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-finishing' && contains(github.event.head_commit.message, '[publish-release]')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $head = gh api repos/$env:GITHUB_REPOSITORY/git/ref/heads/origin0-concept-studio --jq '.object.sha'
+          $head = gh api repos/$env:GITHUB_REPOSITORY/git/ref/heads/origin0-finishing --jq '.object.sha'
           if ($LASTEXITCODE -ne 0 -or $head.Trim() -ne $env:GITHUB_SHA) { throw 'A newer release candidate exists; this run will not publish' }
-          gh release create v1.6.1 --target "$env:GITHUB_SHA" --title "ORIGIN-0 v1.6.1 — Concept Studio and internet relay (Windows preview)" --notes-file RELEASE_NOTES.md --draft --prerelease
+          gh release create v1.7.0 --target "$env:GITHUB_SHA" --title "ORIGIN-0 v1.7.0 — Production Studio and local neural finishing (Windows preview)" --notes-file RELEASE_NOTES.md --draft --prerelease
           if ($LASTEXITCODE -ne 0) { throw 'Release creation failed; no assets were replaced' }
-          gh release upload v1.6.1 release/ORIGIN0.exe release/ORIGIN0_WINDOWS_v1.6.1.zip release/SHA256SUMS.txt release/windows-acceptance/report.json release/windows-acceptance/image.png release/windows-acceptance/generation.log release/windows-acceptance/revision.png release/windows-acceptance/revision.log bundled/origin0-sd-d04e895-windows-amd64-cpu.zip model_catalog.json native-package/imports.txt
+          gh release upload v1.7.0 release/ORIGIN0.exe release/ORIGIN0_WINDOWS_v1.7.0.zip release/SHA256SUMS.txt release/windows-acceptance/report.json release/windows-acceptance/image.png release/windows-acceptance/generation.log release/windows-acceptance/revision.png release/windows-acceptance/revision.log bundled/origin0-sd-d04e895-windows-amd64-cpu.zip model_catalog.json native-package/imports.txt bundled/origin0-upscale-windows-amd64.zip release/upscale_manifest.json release/windows-acceptance/finished.png release/windows-acceptance/finish-recipe.json release/production-report.json bundled/origin0-upscale-linux-amd64.zip
           if ($LASTEXITCODE -ne 0) { throw 'Upload failed; release remains a draft' }
-          gh release edit v1.6.1 --draft=false --prerelease
+          gh release edit v1.7.0 --draft=false --prerelease
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
@@ -102,10 +158,16 @@ jobs:
           name: origin0-windows-validation
           path: |
             release/ORIGIN0.exe
-            release/ORIGIN0_WINDOWS_v1.6.1.zip
+            release/ORIGIN0_WINDOWS_v1.7.0.zip
             release/SHA256SUMS.txt
             release/windows-acceptance/
             bundled/origin0-sd-d04e895-windows-amd64-cpu.zip
             native-package/imports.txt
             model_catalog.json
+            bundled/origin0-upscale-windows-amd64.zip
+            upscale_manifest.json
+            upscale-build/imports.txt
+            release/windows-production/
+            release/production-report.json
+            release/upscale_manifest.json
           retention-days: 14

@@ -88,7 +88,7 @@ func TestHTTPState(t *testing.T) {
 	if rr.Code != 200 {
 		t.Fatalf("code %d", rr.Code)
 	}
-	if !strings.Contains(rr.Body.String(), "1.6.1-concept-studio") {
+	if !strings.Contains(rr.Body.String(), "1.7.0-production") {
 		t.Fatal("state missing version")
 	}
 }

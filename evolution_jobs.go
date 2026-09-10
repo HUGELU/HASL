@@ -53,6 +53,18 @@ type JobRequest struct {
 }
 
 var rebuildFiles = []string{
+	"scripts/prepare_upscaler.py", "native/upscale/builds.json",
+	"PRODUCTION_STUDIO.md",
+	"INTEGRATION_REVIEW.md",
+	"third_party/Real-ESRGAN-LICENSE.txt",
+	"native/upscale/main.cpp",
+	"native/upscale/CMakeLists.txt",
+	"scripts/build_upscaler.py",
+	"scripts/verify_upscaler_native.py",
+	"scripts/acceptance_app.py",
+	"scripts/verify_production_api.py",
+	"scripts/verify_production_browser.py",
+
 	"production_test.go",
 	"architecture.go",
 	"development.go",
@@ -440,7 +452,7 @@ func writeSourceTree(src map[string]string, dir string) error {
 	names := append([]string{}, rebuildFiles...)
 	sort.Strings(names)
 	var snapshot strings.Builder
-	snapshot.WriteString("ORIGIN-0 v1.6.1: exact source used for this build.\n")
+	snapshot.WriteString("ORIGIN-0 v1.7.0: exact source used for this build.\n")
 	for _, name := range names {
 		if err := atomicWrite(filepath.Join(dir, filepath.FromSlash(name)), []byte(src[name])); err != nil {
 			return err

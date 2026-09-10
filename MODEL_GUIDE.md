@@ -1,4 +1,4 @@
-# Models, references and media in ORIGIN-0 v1.6
+# Models, references and media in ORIGIN-0 v1.7
 
 This is a capability map, not a claim that every listed model is installed.
 Checked against primary project documentation on 10 September 2026. No single
@@ -11,7 +11,7 @@ model is reliably best at every prompt, device, identity, layout or style.
 | CogVideoX-2b | Short text-to-video jobs | Check the exact model card and code licences | Optional existing 49-frame CUDA worker; not part of native CPU validation |
 | Qwen-Image-Edit-2511 | Multiple reference images, instruction editing and improved character consistency | Apache-2.0 model card | Researched integration candidate, not connected to the native Z-Image controls |
 | Wan2.2 | Text/image-to-video generation; 5B and larger variants | Apache-2.0 project | Researched integration candidate; separate video runtime/model download needed |
-| Real-ESRGAN / ncnn Vulkan | Tiled learned upscaling and restoration | BSD-3-Clause project | Researched integration candidate; neural 4K/8K upscaling is not bundled |
+| Real-ESRGAN x4plus / NCNN | Tiled learned reconstruction on CPU or Vulkan | BSD-3-Clause model/runtime | Bundled in v1.7 Windows; learned pass up to 4×1024, final long edge up to 7680 with interpolation. See PRODUCTION_STUDIO.md |
 | whisper.cpp | Local multilingual transcription on several CPU/GPU backends | MIT | Researched native packaging candidate; current Voice to prompt uses the configured transcription provider |
 | OpenVINO | Compatible Intel CPU, GPU and NPU inference | Apache-2.0 | Candidate for model-specific conversion and benchmarks; a detected Intel NPU is not used by this release |
 

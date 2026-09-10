@@ -1,0 +1,21 @@
+{
+  "source_files": [
+    "native/upscale/main.cpp",
+    "native/upscale/CMakeLists.txt",
+    "scripts/build_upscaler.py",
+    "third_party/Real-ESRGAN-LICENSE.txt"
+  ],
+  "source_sha256": "cfe1f06b8d90df7a605049632e09268f1cbfdfb62c548e2c67b9c207c2155ae3",
+  "run": 34481515851,
+  "commit": "1fae18f89c70b9bb8d9b8128614ce01b6af207e6",
+  "artifacts": {
+    "linux-amd64": {
+      "id": 10153963089,
+      "sha256": "9e9d48943a34459377e1f8f00d2317c1586baf090d888efc95480ff58eccce98"
+    },
+    "windows-amd64": {
+      "id": 10154163429,
+      "sha256": "d24938efe2e1a1df434151e560fe96dea53abcdc17321f3af525cb34923cfb66"
+    }
+  }
+}

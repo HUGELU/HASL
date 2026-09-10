@@ -1,17 +1,19 @@
-# ORIGIN-0 — local image generation and a learning workbench
+# ORIGIN-0 — local generation, production and a learning workbench
 
 ORIGIN-0 runs an open image model on your own computer and makes generation,
 reviewed teaching examples, interface experiments and volunteer worker PCs
-available in one local application. Application code: **MIT**. The native
-Z-Image-Turbo model pack uses **Apache-2.0** weights.
+available in one local application. Production adds neural image finishing,
+measured property plans, photo walkthroughs and local coding experiments.
+Application code: **MIT**. Z-Image-Turbo weights: **Apache-2.0**.
+Real-ESRGAN/NCNN: **BSD-3-Clause**.
 
-[Windows v1.6.1 ZIP](https://github.com/HUGELU/HASL/releases/download/v1.6.1/ORIGIN0_WINDOWS_v1.6.1.zip) ·
-[ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.6.1/ORIGIN0.exe) ·
-[Release evidence and checksums](https://github.com/HUGELU/HASL/releases/tag/v1.6.1)
+[Windows v1.7.0 ZIP](https://github.com/HUGELU/HASL/releases/download/v1.7.0/ORIGIN0_WINDOWS_v1.7.0.zip) ·
+[ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.7.0/ORIGIN0.exe) ·
+[Release evidence and checksums](https://github.com/HUGELU/HASL/releases/tag/v1.7.0)
 
-The v1.6.1 release workflow publishes these downloads only after source, browser
+The v1.7.0 release workflow publishes these downloads only after source, browser
 and actual native Windows image-generation tests pass. See
-[validation](VALIDATION_V16.md) for the exact scope.
+[validation](VALIDATION_V17.md) for the exact scope.
 
 ## Start on Windows
 
@@ -27,6 +29,27 @@ free. 16 GB RAM is a practical starting point; 32 GB gives more room. The Window
 CPU package targets modern x64 processors with AVX2. A Galaxy Book5 Pro 360 is
 in that processor class, but its specific GPU/driver has not been certified here.
 CPU images can take minutes. Automatic Vulkan probing has a CPU fallback.
+
+To try the new tools immediately, open **Production** and upload an image.
+Finishing, measured SVG plans and photo walkthroughs work without the 6.52 GB
+diffusion model download. The Windows release embeds the upscaler and its weights.
+
+## Production tools
+
+- Fast resampling or tiled Real-ESRGAN reconstruction, detail blending, bounded
+  sharpening and final output up to a 7680-pixel long edge. Source preservation,
+  checksummed cache, cancellation and downloadable processing recipes.
+- Apply finishing automatically to new image jobs, or finish an imported image.
+- Dimensioned rectangular rooms and doors, non-overlap checks, area sums and SVG.
+- Up to 12 ordered property photos, room association and image-revision handoff.
+  Save projects and export offline photo walkthroughs with browser WebM recording.
+- A local coding-model loop for selected numerical source. Review proposals and
+  per-iteration feedback. Optional Docker tests run separately from the live host.
+
+[Production guide](PRODUCTION_STUDIO.md) ·
+[Open Higgsfield review and capability mapping](INTEGRATION_REVIEW.md).
+The measured plan is schematic. Photo sequences do not reconstruct a 3D building.
+Learned detail remains an estimate; 8K export can include interpolation.
 
 ## Generation controls
 
@@ -51,7 +74,8 @@ CPU images can take minutes. Automatic Vulkan probing has a CPU fallback.
 Recommendations are starting points. Ratings learn a preference over settings;
 they do not silently train the native image model. Image-to-image revision does
 not guarantee identity, exact logos, unchanged regions or 360-degree geometry.
-Native output remains at most 1024 × 1024 in this release. See the
+Native diffusion output remains at most 1024 × 1024; Production can finish it at
+a larger size. See the
 [model and media guide](MODEL_GUIDE.md) for additional models and remaining work.
 
 ## Teach concepts and inspect evidence
