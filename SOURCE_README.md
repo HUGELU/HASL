@@ -1,6 +1,6 @@
-# Building ORIGIN-0 v1.5
+# Building ORIGIN-0 v1.6
 
-See README.md for capabilities and limits. Go 1.23+ builds the native host;
+See README.md for capabilities and limits. Go 1.24+ builds the native host;
 Python 3 runs the build helper and validation scripts only. End users do not
 need Python for the default image studio.
 

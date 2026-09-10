@@ -33,11 +33,15 @@ type PoolPeer struct {
 	Completed int    `json:"completed"`
 }
 type PoolInvite struct {
-	URL   string `json:"url"`
-	Pin   string `json:"pin"`
-	Token string `json:"token"`
+	Relay *RelayInvitation `json:"relay,omitempty"`
+	URL   string           `json:"url"`
+	Pin   string           `json:"pin"`
+	Token string           `json:"token"`
 }
 type ComputePool struct {
+	relay         *RelayInvitation
+	relayCancel   context.CancelFunc
+	relayStatus   string
 	s             *NativeImages
 	mu            sync.Mutex
 	wg            sync.WaitGroup
@@ -62,7 +66,7 @@ func (p *ComputePool) status() any {
 	for _, x := range p.members {
 		peers = append(peers, *x)
 	}
-	return map[string]any{"hosting": p.server != nil, "address": p.address, "peers": peers, "joined": p.joinCancel != nil, "worker_status": p.joinState, "completed": p.joinCompleted, "budget": p.joinBudget}
+	return map[string]any{"hosting": p.server != nil, "address": p.address, "relay_status": p.relayStatus, "internet": p.relay != nil, "peers": peers, "joined": p.joinCancel != nil, "worker_status": p.joinState, "completed": p.joinCompleted, "budget": p.joinBudget}
 }
 func poolCertificate() (tls.Certificate, string, error) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -149,12 +153,18 @@ func (p *ComputePool) invite() (string, error) {
 	}
 	token := randomID() + randomID()
 	p.members[token] = &PoolPeer{ID: "peer-" + randomID()[:12], Name: "Invitation waiting"}
-	b, _ := json.Marshal(PoolInvite{p.address, p.pin, token})
+	b, _ := json.Marshal(PoolInvite{URL: p.address, Pin: p.pin, Token: token, Relay: p.relay})
 	return "origin0:" + base64.RawURLEncoding.EncodeToString(b), nil
 }
 func (p *ComputePool) stopHost() {
 	p.mu.Lock()
 	srv := p.server
+	if p.relayCancel != nil {
+		p.relayCancel()
+		p.relayCancel = nil
+	}
+	p.relay = nil
+	p.relayStatus = ""
 	p.server = nil
 	p.members = map[string]*PoolPeer{}
 	p.address = ""
@@ -359,6 +369,9 @@ func (p *ComputePool) handler() http.Handler {
 }
 func parsePoolInvite(raw string) (PoolInvite, error) {
 	var v PoolInvite
+	if len(raw) > 4096 {
+		return v, errors.New("invitation is too large")
+	}
 	b, err := base64.RawURLEncoding.DecodeString(strings.TrimPrefix(strings.TrimSpace(raw), "origin0:"))
 	if err != nil || json.Unmarshal(b, &v) != nil {
 		return v, errors.New("paste the complete ORIGIN-0 invitation")
@@ -370,9 +383,19 @@ func parsePoolInvite(raw string) (PoolInvite, error) {
 	if _, err = hex.DecodeString(v.Pin); err != nil {
 		return v, errors.New("invalid TLS fingerprint")
 	}
+	if v.Relay != nil {
+		r := v.Relay
+		k, er := hex.DecodeString(r.Key)
+		if !validRelayURL(r.URL) || !validID(r.Room) || len(r.Guest) < 32 || len(r.Guest) > 160 || er != nil || len(k) != 32 {
+			return v, errors.New("invalid internet relay invitation")
+		}
+	}
 	return v, nil
 }
 func poolClient(v PoolInvite) *http.Client {
+	if v.Relay != nil {
+		return relayHTTPClient()
+	}
 	// Self-signed peers are authenticated by the exact certificate fingerprint in
 	// the invitation, not by system CA roots. No redirect may forward the token.
 	return &http.Client{Timeout: 45 * time.Second, Transport: &http.Transport{TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS13, InsecureSkipVerify: true, VerifyConnection: func(cs tls.ConnectionState) error {
@@ -396,6 +419,9 @@ func poolPost(ctx context.Context, c *http.Client, v PoolInvite, path string, bo
 		if err != nil {
 			return nil, err
 		}
+	}
+	if v.Relay != nil {
+		return relayWorkerPost(ctx, c, v, path, data, headers)
 	}
 	req, err := http.NewRequestWithContext(ctx, "POST", v.URL+path, bytes.NewReader(data))
 	if err != nil {
@@ -486,7 +512,7 @@ func (p *ComputePool) join(raw, name string, budget int) error {
 				continue
 			}
 			attempts++
-			if err := validateImageRequest(answer.Job.Request); err != nil || answer.Job.Pack != p.s.catalog.ID || !validID(answer.Job.ID) || len(answer.Job.ID) > 80 || len(answer.Lease) > 160 {
+			if err := validateImageRequest(answer.Job.Request); err != nil || answer.Job.Request.InitAsset != "" || answer.Job.Pack != p.s.catalog.ID || !validID(answer.Job.ID) || len(answer.Job.ID) > 80 || len(answer.Lease) > 160 {
 				p.workerMessage("Rejected invalid image task")
 				return
 			}
@@ -568,6 +594,8 @@ func (p *ComputePool) routes(mux *http.ServeMux) {
 	})
 	mux.HandleFunc("/api/pool/action", func(w http.ResponseWriter, r *http.Request) {
 		var v struct {
+			RelayURL  string `json:"relay_url"`
+			RelayKey  string `json:"relay_key"`
 			Action    string `json:"action"`
 			Listen    string `json:"listen"`
 			Advertise string `json:"advertise"`
@@ -582,6 +610,8 @@ func (p *ComputePool) routes(mux *http.ServeMux) {
 		var err error
 		var result any
 		switch v.Action {
+		case "host-internet":
+			err = p.hostInternet(v.RelayURL, v.RelayKey)
 		case "host":
 			err = p.host(v.Listen, v.Advertise)
 		case "invite":

@@ -1,90 +1,120 @@
-# ORIGIN-0 — local image generation and volunteer worker PCs
+# ORIGIN-0 — local image generation and a learning workbench
 
-ORIGIN-0 is an open-source image studio and experimental learning workbench.
-The immediate goal is reliable image generation on ordinary computers, with
-visible setup, useful diagnostics, and a way for explicitly joined PCs to
-share independent image jobs.
+ORIGIN-0 runs an open image model on your own computer and makes generation,
+reviewed teaching examples, interface experiments and volunteer worker PCs
+available in one local application. Application code: **MIT**. The native
+Z-Image-Turbo model pack uses **Apache-2.0** weights.
 
-**Windows preview v1.5 is available.** The packaged app passed actual Windows CPU
-startup, model setup, generation and PNG-download checks. A separate Linux CPU
-run produced a visually checked 512 × 512 image.
+[Windows v1.6.1 ZIP](https://github.com/HUGELU/HASL/releases/download/v1.6.1/ORIGIN0_WINDOWS_v1.6.1.zip) ·
+[ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.6.1/ORIGIN0.exe) ·
+[Release evidence and checksums](https://github.com/HUGELU/HASL/releases/tag/v1.6.1)
 
-[Download the Windows ZIP](https://github.com/HUGELU/HASL/releases/download/v1.5.0/ORIGIN0_WINDOWS_v1.5.zip) ·
-[Download ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.5.0/ORIGIN0.exe) ·
-[Release and checksums](https://github.com/HUGELU/HASL/releases/tag/v1.5.0)
+The v1.6.1 release workflow publishes these downloads only after source, browser
+and actual native Windows image-generation tests pass. See
+[validation](VALIDATION_V16.md) for the exact scope.
 
-## Image generation
+## Start on Windows
 
-- Native Go application; the primary image path needs no Python or API account.
-- [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp) executes
-  [Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo).
-- Quantized diffusion and text-encoder weights plus a VAE total **6.52 GB**.
-  First setup downloads them visibly, resumes partial files, and verifies
-  pinned SHA-256 checksums. Subsequent use can be offline.
-- CPU fallback and optional Vulkan acceleration. CPU generation can take minutes.
-- Prompt, size, seed, step count, queue, cancellation, PNG downloads, and logs.
-- Threads and per-job time limits remain under the owner's control.
+1. Extract the ZIP into a normal writable folder and double-click **ORIGIN0.exe**.
+2. Keep the console open. It prints the local address and opens your browser.
+3. In **Image studio**, click **Set up image engine**. The first run downloads
+   **6.52 GB** of pinned model files, with visible progress and resumable downloads.
+4. Wait for **Ready**, enter a prompt and click **Generate image**.
 
-The application code is MIT licensed. The default model pack uses Apache-2.0
-weights. No ORIGIN-0 service subscription is required. Model licences, attribution
-requirements, hardware costs, electricity and connectivity still apply.
+The native CPU runtime is inside the release executable. This image path needs
+**no Python, API key or paid subscription**. Keep at least 10 GB of disk space
+free. 16 GB RAM is a practical starting point; 32 GB gives more room. The Windows
+CPU package targets modern x64 processors with AVX2. A Galaxy Book5 Pro 360 is
+in that processor class, but its specific GPU/driver has not been certified here.
+CPU images can take minutes. Automatic Vulkan probing has a CPU fallback.
 
-## Run
+## Generation controls
 
-Download the ZIP above, extract it into a new folder, and double-click
-**ORIGIN0.exe**. The tested CPU runtime is inside the executable. Choose **CPU**
-for the tested configuration. This release targets modern Windows x64 PCs with
-AVX2; Android, iOS, Windows ARM and individual GPU drivers are not covered by this
-release test.
+- CPU count, RAM, CPU identity and available GPU inventory; actual runtime
+  device probing during setup. Draft, balanced and detail recommendations.
+- Prompt helpers for candid photography, architecture and fashion; editable
+  wording, sizes, steps, fixed or random seeds and batches of up to 16 requests.
+- **One-reference image revision**, adjustable change strength and rough
+  intermediate sampling previews from the pinned native runtime.
+- Queue and cancellation: one local image at a time, up to 256 pending jobs,
+  and 1,000 recent job records with history paging.
+- Four user ratings, notes and downloadable generation metadata. After three
+  rated results for the **same prompt and reference**, an enabled preference
+  selector can reuse the best-rated settings. Loading/reusing explicit saved
+  settings disables that selector until you turn it on again.
+- Voice-to-prompt through a configured local or remote transcription provider.
+  Recording itself is local; automatic offline transcription is not bundled.
+- A local PIN lock, a private recovery-code download, restart locking and
+  inactivity locking. The server blocks workspace data APIs while locked.
+  Files on disk and the process remain visible to the operating-system owner.
 
-Developers can build the source using Go 1.23+ and the `build.py` helper:
+Recommendations are starting points. Ratings learn a preference over settings;
+they do not silently train the native image model. Image-to-image revision does
+not guarantee identity, exact logos, unchanged regions or 360-degree geometry.
+Native output remains at most 1024 × 1024 in this release. See the
+[model and media guide](MODEL_GUIDE.md) for additional models and remaining work.
+
+## Teach concepts and inspect evidence
+
+**Concept Studio** combines descriptive attributes and position sliders with
+image collection, review, separate datasets and measured experiments.
+
+- Search Openverse or a configured SearXNG instance. Download a bounded set of
+  results with source/licence metadata, or import images you provide.
+- Review each category and caption. Downloaded images begin as pending examples.
+  Duplicates and conservative near-duplicate groups share a dataset split.
+- Try exact synthetic exercises for left/right, above/below, in/out, on/off
+  and colour. Compare six small spatial-feature classifier candidates.
+- Select on validation evidence; report a separate audit result; retain the
+  previous classifier for rollback. These are small recognizers, not a vision
+  foundation model or a claim of general comprehension.
+- Export split datasets, feed a project's approved examples to the optional
+  SDXL LoRA worker, or preview and publish a recipe as a **draft GitHub PR**.
+  The contribution flow sends no image bytes or model weights.
+
+[Concept Studio guide](CONCEPT_STUDIO.md) · [Technology report](TECHNOLOGY_REPORT.md)
+
+## Connect worker PCs over the internet
+
+Each group has a coordinator. Workers explicitly join with their own model,
+finite job allowance and local resource limits. They pull whole-image jobs,
+renew leases and return validated PNGs. Leaving stops their current contribution.
+
+Direct groups use TLS and an invitation that pins the coordinator certificate.
+For laptops behind routers, deploy ORIGIN-0's **HTTPS relay** on a reachable
+server, select **Connect through an internet relay**, and share invitations.
+Both laptops make outbound HTTPS connections; the relay carries AES-GCM encrypted
+job envelopes. No port forwarding is required on those laptops.
+
+[Relay deployment and limits](INTERNET_RELAY.md). No public relay is supplied.
+There is no internet VRAM pooling, public peer discovery, tensor-parallel model
+inference or federated image training in this version.
+
+## Existing research and source evolution
+
+The previous graph, independent hypothesis memories, interface candidates,
+measured usability trials, saved branches and restore operations are retained.
+The optional local workbench supports SDXL image/LoRA and CogVideoX jobs in a
+separate model environment. A validated numeric recognition kernel can be
+reconstructed, tested and archived in a new executable using an installed Go
+compiler. General model-written source edits remain review proposals.
+
+[Local models and rebuilding](LOCAL_MODELS.md). Larger datasets, repeated
+inference and more workers alone do not establish increased intelligence or
+better realism. No superiority over other image generators is claimed.
+
+## Build and contribute
+
+Go 1.24+ builds the host; the Python helper embeds the exact source and invokes Go.
 
 ```sh
 python3 build.py --target linux
 # Windows: python build.py --target windows
 ```
 
-Run the executable, keep its console open, then use the browser address printed
-there. In **Image studio**, choose **Set up image engine**, wait for **Ready**,
-enter a prompt and press **Generate image**. Keep at least 10 GB of free disk
-space. 16 GB RAM is a practical starting point; 32 GB gives more room. This is
-not a guarantee for every model size, GPU driver or operating system.
+Model licences and attribution requirements apply independently of ORIGIN-0's
+MIT licence. Hardware, electricity and internet access remain necessary.
 
-## Volunteer compute
-
-1. On the coordinator, open **Worker PCs**, start a group and create an invitation.
-2. On each worker, finish image setup, paste its invitation, choose a name and
-   a finite job allowance, then join.
-3. On the coordinator, select **Send this job to a joined worker PC**.
-
-TLS encrypts traffic and each invitation pins the exact group certificate.
-Workers pull image jobs, renew leases, return checked PNGs and stop at their
-allowance. Cancelling invalidates a job lease; a late result is rejected.
-A disconnected job can be reassigned once. Stop/leave ends participation.
-
-This version uses a coordinator per group. It shares complete jobs, not GPU
-memory. Public peer discovery, NAT traversal, torrent model transfer, federated
-training, tensor-parallel inference and blockchain incentives are not implemented.
-For remote PCs, arrange a reachable private-network address. A public computer or
-free trial is not a volunteered worker just because it is discoverable.
-
-## Experimental learning
-
-The existing workbench remains available: bounded pattern graphs, independently
-remembered hypotheses, interface candidates, measured usability trials, saved
-branches, labels and small-feature recognition. A tested numeric distance kernel
-can be generated and archived in a rebuilt application. Optional SDXL LoRA and
-CogVideoX workers still need their separate Python/model environment.
-
-These experiments do not train Z-Image-Turbo automatically, invent a stronger
-foundation model, or demonstrate improving realism. More stored files or work
-cycles alone are not a measure of intelligence. Arbitrary contributed code is
-reviewed as normal source changes; it is not executed through the worker protocol.
-
-## Contribute
-
-See [CONTRIBUTING.md](CONTRIBUTING.md), [validation](VALIDATION_V15.md), and
-[model provenance](third_party/NOTICES.md). Useful work includes clean Windows
-startup, Intel GPU performance, accessible interfaces, reproducible image quality
-benchmarks, and better distributed scheduling. Join the [hardware testing issue](https://github.com/HUGELU/HASL/issues/2). Human and AI-assisted contributions
-use the same pull-request checks.
+[Contributing](CONTRIBUTING.md) · [Hardware testing](https://github.com/HUGELU/HASL/issues/2) ·
+[Model provenance](third_party/NOTICES.md). Human and AI-assisted changes use the
+same tests and pull-request review process.

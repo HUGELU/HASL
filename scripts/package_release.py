@@ -9,18 +9,30 @@ release = ROOT / 'release'
 report = json.loads((release / 'windows-acceptance/report.json').read_text())
 if report.get('result') != 'passed' or report.get('real_diffusion') is not True:
     raise SystemExit('A real successful image job is required before packaging')
+revision = release / 'windows-acceptance/revision.png'
+if hashlib.sha256(revision.read_bytes()).hexdigest() != report.get('revision', {}).get('sha256'):
+    raise SystemExit('A verified real image-to-image revision is required before packaging')
 image = release / 'windows-acceptance/image.png'
 if hashlib.sha256(image.read_bytes()).hexdigest() != report['image']['sha256']:
     raise SystemExit('Validation image checksum mismatch')
-archive = release / 'ORIGIN0_WINDOWS_v1.5.zip'
+archive = release / 'ORIGIN0_WINDOWS_v1.6.1.zip'
 files = {
     'ORIGIN0.exe': release / 'ORIGIN0.exe',
     'README_FIRST.txt': ROOT / 'README_FIRST.txt',
     'LICENSE': ROOT / 'LICENSE',
     'RELEASE_NOTES.md': ROOT / 'RELEASE_NOTES.md',
+    'CONCEPT_STUDIO.md': ROOT / 'CONCEPT_STUDIO.md',
+    'INTERNET_RELAY.md': ROOT / 'INTERNET_RELAY.md',
+    'TECHNOLOGY_REPORT.md': ROOT / 'TECHNOLOGY_REPORT.md',
+    'MODEL_GUIDE.md': ROOT / 'MODEL_GUIDE.md',
+    'LOCAL_MODELS.md': ROOT / 'LOCAL_MODELS.md',
+    'worker/requirements.txt': ROOT / 'worker/requirements.txt',
+    'worker/local_models.py': ROOT / 'worker/local_models.py',
     'model_catalog.json': ROOT / 'model_catalog.json',
     'validation/report.json': release / 'windows-acceptance/report.json',
     'validation/image.png': image,
+    'validation/revision.png': revision,
+    'validation/revision.log': release / 'windows-acceptance/revision.log',
     'validation/generation.log': release / 'windows-acceptance/generation.log',
     'validation/runtime-imports.txt': ROOT / 'native-package/imports.txt',
 }
