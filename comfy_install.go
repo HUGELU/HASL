@@ -14,26 +14,46 @@ import (
 )
 
 // Extract only ordinary files inside a new staging directory. Never overwrite an existing installation.
-func extractComfyArchive(ctx context.Context, archive, dest string) error {
-	// Windows' bundled bsdtar reads 7z without a separate installer. The archive is
-	// pinned and SHA-256 verified before this function is called.
-	listing, err := nativeCommand(ctx, "tar.exe", "-tf", archive).Output()
+func extractComfyArchive(ctx context.Context, extractor, archive, dest string) error {
+	// Both the standalone extractor and archive are pinned and verified first.
+	// Windows ships different tar builds, some without 7z support.
+	listing, err := nativeCommand(ctx, extractor, "l", "-slt", "-ba", "-sccUTF-8", archive).CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("Windows tar could not inspect the verified portable archive: %w", err)
+		return fmt.Errorf("7-Zip could not inspect the verified portable archive: %w: %s", err, shortText(string(listing), 2500))
 	}
-	for _, name := range strings.Split(string(listing), "\n") {
-		name = strings.TrimSpace(name)
-		if name == "" {
-			continue
-		}
-		clean := filepath.Clean(filepath.FromSlash(strings.ReplaceAll(name, "\\", "/")))
-		if !filepath.IsLocal(clean) || strings.Contains(clean, ":") {
-			return errors.New("unsafe archive path")
-		}
+	if err := validateComfyListing(string(listing)); err != nil {
+		return err
 	}
-	cmd := nativeCommand(ctx, "tar.exe", "-xf", archive, "-C", dest)
+	cmd := nativeCommand(ctx, extractor, "x", "-y", "-bsp0", "-bso0", "-bse1", "-o"+dest, archive)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("portable extraction failed: %w: %s", err, shortText(string(out), 2000))
+	}
+	return nil
+}
+
+func validateComfyListing(listing string) error {
+	listing = strings.TrimPrefix(listing, "\ufeff")
+	listing = strings.ReplaceAll(listing, "\r\n", "\n")
+	if _, entries, ok := strings.Cut(listing, "\n----------\n"); ok {
+		listing = entries
+	}
+	count := 0
+	for _, line := range strings.Split(listing, "\n") {
+		if name, ok := strings.CutPrefix(line, "Path = "); ok {
+			clean := filepath.Clean(filepath.FromSlash(strings.ReplaceAll(name, "\\", "/")))
+			if name == "" || !filepath.IsLocal(clean) || strings.Contains(clean, ":") {
+				return errors.New("unsafe archive path")
+			}
+			count++
+		}
+		for _, prefix := range []string{"Symbolic Link = ", "Hard Link = "} {
+			if target, ok := strings.CutPrefix(line, prefix); ok && strings.TrimSpace(target) != "" {
+				return errors.New("portable archive links are not supported")
+			}
+		}
+	}
+	if count == 0 {
+		return errors.New("7-Zip returned no recognised portable file entries")
 	}
 	return nil
 }
@@ -68,13 +88,16 @@ func (s *MediaStudio) setupComfy() error {
 	if err := json.Unmarshal(b, &specs); err != nil {
 		return err
 	}
-	var spec DownloadSpec
+	var spec, helper DownloadSpec
 	for _, v := range specs {
 		if v.Role == device {
 			spec = v
 		}
+		if v.Role == "extractor" {
+			helper = v
+		}
 	}
-	if spec.URL == "" {
+	if spec.URL == "" || helper.URL == "" {
 		return errors.New("no pinned portable package for this device")
 	}
 	dest := filepath.Join(s.root(), "comfy-v0.35.0-"+device)
@@ -96,13 +119,18 @@ func (s *MediaStudio) setupComfy() error {
 		defer s.wg.Done()
 		defer cancel()
 		archive := filepath.Join(s.root(), "downloads", spec.Name)
-		err := downloadPinned(ctx, s.client, spec, archive, func(msg string, n, t int64) {
+		extractor := filepath.Join(s.root(), "tools", "7zr-26.03.exe")
+		progress := func(msg string, n, t int64) {
 			s.mu.Lock()
 			s.install.Message = msg
 			s.install.Done = n
 			s.install.Total = t
 			s.mu.Unlock()
-		})
+		}
+		err := downloadPinned(ctx, s.client, helper, extractor, progress)
+		if err == nil {
+			err = downloadPinned(ctx, s.client, spec, archive, progress)
+		}
 		staging := ""
 		if err == nil {
 			staging, err = os.MkdirTemp(s.root(), "comfy-staging-")
@@ -112,7 +140,7 @@ func (s *MediaStudio) setupComfy() error {
 			s.install.Status = "extracting"
 			s.install.Message = "Checksum verified. Extracting the portable environment; this can take several minutes."
 			s.mu.Unlock()
-			err = extractComfyArchive(ctx, archive, staging)
+			err = extractComfyArchive(ctx, extractor, archive, staging)
 		}
 		var py, root string
 		if err == nil {

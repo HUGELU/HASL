@@ -42,7 +42,7 @@ def main():
       probe=app.api('/api/studio/comfy',{});break
      except (urllib.error.HTTPError,urllib.error.URLError) as e:error=str(e);time.sleep(3)
     else:raise RuntimeError('ComfyUI startup failed: '+error)
-    report['comfy_system']=probe['system'];report['checks'].append('Official pinned Windows portable extracted with bundled Windows tar; embedded Python started ComfyUI in CPU mode')
+    report['comfy_system']=probe['system'];report['checks'].append('Official pinned Windows portable extracted with the verified standalone 7-Zip utility; embedded Python started ComfyUI in CPU mode')
     app.api('/api/studio/install',{'id':'sd15'})
     wait('SD 1.5 model',lambda:app.api('/api/studio/state',{})['install'],lambda s:s['status']=='ready',lambda s:s['status'] in ['failed','error','cancelled'],1200)
     # ComfyUI refreshes its filename lists when object_info is requested.

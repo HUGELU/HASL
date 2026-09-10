@@ -1335,8 +1335,8 @@ func (e *Engine) consoleLoop() {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	fmt.Println("============================================================")
-	fmt.Println("ORIGIN-0 v1.7.1 - LOCAL PRODUCTION AND RESEARCH")
-	fmt.Println("No Python. No pip. No external runtime.")
+	fmt.Println("ORIGIN-0 v1.8.0 - OPEN CREATIVE STUDIO")
+	fmt.Println("Open Models & engines for local model packs and portable ComfyUI.")
 	fmt.Println("============================================================")
 	for {
 		select {

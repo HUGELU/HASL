@@ -62,6 +62,26 @@ func TestStudioControlBodiesValidatedBeforeSideEffects(t *testing.T) {
 		}
 	}
 }
+
+func TestComfyArchiveEntriesStayInsideStaging(t *testing.T) {
+	valid := "Path = ComfyUI_windows_portable\\ComfyUI\\main.py\r\nSize = 20\r\n\r\nPath = ComfyUI_windows_portable\\python_embeded\\python.exe\r\nSize = 100\r\n"
+	if err := validateComfyListing(valid); err != nil {
+		t.Fatal(err)
+	}
+	for _, bad := range []string{
+		"Path = ..\\outside.exe\n",
+		"Path = C:\\outside.exe\n",
+		"Path = /outside.exe\n",
+		"Path = safe.txt:stream\n",
+		"Path = safe\nSymbolic Link = ..\\outside\n",
+		"Path = safe\nHard Link = ..\\outside\n",
+		"No entries were listed",
+	} {
+		if err := validateComfyListing(bad); err == nil {
+			t.Fatalf("unsafe or unrecognised listing accepted: %q", bad)
+		}
+	}
+}
 func TestComfyWorkflowOutputAndErrorPersistence(t *testing.T) {
 	// This is an HTTP protocol fixture, not evidence of neural image quality.
 	var im bytes.Buffer

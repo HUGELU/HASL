@@ -25,5 +25,14 @@
     "license": "GPL-3.0 (ComfyUI); included runtimes retain their licences",
     "source": "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.35.0",
     "role": "nvidia"
+  },
+  {
+    "license": "7-Zip / LZMA SDK notices",
+    "name": "7zr.exe",
+    "role": "extractor",
+    "sha256": "ad4c82fadcbdf93c03b4fc440f300509c7d60c5c2f4d183e35d9d70d6957037d",
+    "size": 602624,
+    "source": "https://github.com/ip7z/7zip/releases/tag/26.03",
+    "url": "https://github.com/ip7z/7zip/releases/download/26.03/7zr.exe"
   }
 ]
