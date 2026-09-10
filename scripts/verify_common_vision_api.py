@@ -28,15 +28,15 @@ def main():
    review('reject-draft',s['draft']);assert state()['adopted']==draft
    report['checks']+=['Review and authorisation are separate','Simulation feedback created a reviewable follow-up','Adopted snapshot unchanged by outcomes or rejected drafts']
    for i in range(4):
-    act('contribute',contribution=dict(actor='test-bot',source_type='automated',kind='opinion',topic='access',text='Bot analysis '+str(i),language='en',context='identified automated fixture',stance='support',importance=3,urgency=3,consequence=3,consent=True))
+    act('contribute',contribution=dict(actor='test-bot',source_type='automated',kind='opinion',topic='access',text='Bot analysis — café / 共同 '+str(i),language='en',context='identified automated fixture',stance='support',importance=3,urgency=3,consequence=3,consent=True))
    topics=app.api('/api/vision/state',{})['topics'];assert all(t['human_records']==0 and t['support']==0 for t in topics)
    assert next(t for t in topics if t['topic']=='access')['automated_records']==1
    report['checks'].append('Bot repetition and demonstration inputs did not become human support')
    exported=app.api('/api/vision/export',{});assert exported['schema']=='origin0.common-vision.v1'
    (out/'demonstration-state.json').write_text(json.dumps(exported,indent=2),encoding='utf-8')
-   on_disk=json.loads((app.home/'origin0_data/common-vision.json').read_text());assert on_disk==exported
+   on_disk=json.loads((app.home/'origin0_data/common-vision.json').read_bytes());assert on_disk==exported
    assert app.api('/api/vision/state',{'since':exported['revision']})=={'unchanged':True}
-   report['checks'].append('Recovery export exactly matches durable state; unchanged polling is bounded')
+   report['checks'].append('Recovery export exactly matches durable UTF-8 state including multilingual input; unchanged polling is bounded')
    report['result']='passed'
  finally:(out/'report.json').write_text(json.dumps(report,indent=2))
  print(json.dumps(report))
