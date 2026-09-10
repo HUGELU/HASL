@@ -4,6 +4,10 @@
 
 Release: https://github.com/HUGELU/HASL/releases/tag/v1.8.0
 
+Repository delivery: PR #6 is ready for review on `origin0-media-studio`. The final download/documentation checkpoint was saved at `9b2954a53d21c8adc69dfefe49e734745b636407`. Automatic approval review rejected the requested merge into `main`, stating that the user must explicitly approve this particular main-branch merge. No alternate merge route was attempted. The published Windows release remains available and the integration remains preserved on its branch.
+
+Next repository action: obtain explicit approval to merge PR #6, verify its then-current head, and merge with that expected SHA. Do not rerun the completed Windows acceptance unless application code changes or a required gate demands it. The change recording this blocker is documentation only; the tested application commit and release checksums below remain unchanged.
+
 Tested application commit: **106e8cd057e457b26a794d8e60326bd118ab9b06**, branch **origin0-media-studio**, PR **https://github.com/HUGELU/HASL/pull/6**.
 
 Passing validation and publication run: https://github.com/HUGELU/HASL/actions/runs/34532281015. Source/race/vet, restricted-container, retained Concept/Production/Common Vision API and browser checks, new Open Studio browser checks, Windows tests/vet and the complete Windows generation path passed. Windows produced a native image in 117.30 s, a ComfyUI image in 70.27 s and a ComfyUI reference edit in 26.08 s. All three were 256 × 256 at two steps on a four-thread CPU. There were **zero polling recoveries** and no recorded application panic. ComfyUI reported v0.35.0, embedded Python 3.13.14 and PyTorch 2.13.0+xpu running on CPU.
