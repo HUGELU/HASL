@@ -1,7 +1,7 @@
 'use strict';
 window.privacyLocked=true;
 let privacyEnabled=false,privacyLastAction=Date.now();
-window.showPrivacy=()=>{window.privacyLocked=true;document.body.classList.add('privacy-pending');$('privacy-screen').hidden=false;document.title='Private workspace';if(window.stopStudioMedia)window.stopStudioMedia();};
+window.showPrivacy=()=>{window.privacyLocked=true;const frame=document.getElementById('open-studio-frame');if(frame){try{frame.contentWindow.closeMediaChannels?.()}catch{}frame.removeAttribute('src')}document.body.classList.add('privacy-pending');$('privacy-screen').hidden=false;document.title='Private workspace';if(window.stopStudioMedia)window.stopStudioMedia();};
 async function syncPrivacy(){try{const p=await api('/api/privacy',{action:'state'});privacyEnabled=p.enabled;window.privacyLocked=p.locked;if(p.locked){showPrivacy();$('privacy-message').textContent=p.problem||'';$('privacy-code').focus()}else{document.body.classList.remove('privacy-pending');$('privacy-screen').hidden=true;document.title='ORIGIN-0 · Local image studio';refreshNative();refresh();if(window.loadHardware)window.loadHardware(false)}}catch(e){showPrivacy();$('privacy-message').textContent=e.message}}
 $('lock-workspace').addEventListener('click',run(async()=>{if(!privacyEnabled){setPage('settings');$('privacy-new').focus();toast('Set a PIN and save its recovery code first.');return}await api('/api/privacy',{action:'lock'});showPrivacy();location.reload()}));
 $('privacy-unlock').addEventListener('submit',run(async e=>{e.preventDefault();try{await api('/api/privacy',{action:'unlock',pin:$('privacy-code').value});$('privacy-code').value='';location.reload()}catch(err){$('privacy-message').textContent=err.message;$('privacy-code').value=''}}));

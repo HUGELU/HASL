@@ -53,6 +53,8 @@ type JobRequest struct {
 }
 
 var rebuildFiles = []string{
+	"media_studio_test.go", "scripts/verify_media_browser.py", "RECOVERY_MEDIA_STUDIO.md",
+	"comfy_live.go",
 	"common_vision.go",
 	"common_vision_test.go",
 	"web/common_vision.js",

@@ -169,6 +169,12 @@ func (s *MediaStudio) generate(q StudioRequest) (any, error) {
 		q.Guidance = &m.Guidance
 	}
 	if m.Engine == "native" {
+		if q.Seed == -1 {
+			q.Seed = time.Now().UnixNano() & 0x7fffffff
+		}
+		if q.Negative != "" || *q.Guidance != 1 {
+			return nil, errors.New("the native distilled model uses fixed guidance; choose a ComfyUI model for negative prompts and guidance controls")
+		}
 		if q.Lora != "" {
 			return nil, errors.New("use ComfyUI for LoRA workflows")
 		}
@@ -182,6 +188,7 @@ func (s *MediaStudio) generate(q StudioRequest) (any, error) {
 }
 func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 	s := e.mediaStudio
+	mux.HandleFunc("/studio/ws", e.comfyLive)
 	sub, _ := fs.Sub(assets, "web/open-studio")
 	mux.Handle("/open-studio/", http.StripPrefix("/open-studio/", http.FileServer(http.FS(sub))))
 	mux.HandleFunc("/api/studio/state", func(w http.ResponseWriter, r *http.Request) { jsonReply(w, s.state()) })

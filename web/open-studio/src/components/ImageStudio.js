@@ -20,21 +20,21 @@ export function ImageStudio() {
     let selectedModelName = defaultModel.name;
     let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
     let dropdownOpen = null;
-    let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
-    let imageMode = false; // false = t2i models, true = i2i models
+    let uploadedImageUrls = draft?.init_asset?['origin-asset:'+draft.init_asset]:[]; // array of uploaded image URLs (multi-image support)
+    let imageMode = !!draft?.init_asset; // false = t2i models, true = i2i models
 
     // Advanced parameters state
-    let negativePrompt = '';
-    let guidanceScale = defaultModel.guidance;
-    let steps = defaultModel.steps;
-    let seed = -1;
+    let negativePrompt = draft?.negative_prompt||'';
+    let guidanceScale = draft?.guidance_scale??defaultModel.guidance;
+    let steps = draft?.steps??defaultModel.steps;
+    let seed = draft?.seed??-1;
     let showAdvanced = false;
     let selectedStyle = 'None';
     let batchCount = 1;
 
     // New advanced controls
-    let customWidth = 0;  // 0 means use default (aspect ratio based)
-    let customHeight = 0;
+    let customWidth = draft?.width||0;  // 0 means use default (aspect ratio based)
+    let customHeight = draft?.height||0;
     let referenceStrength = 50;  // 0-100, for style reference models
     let selectedLora = '';  // LoRA model ID from local ComfyUI
     let loraWeight = 1.0;
@@ -1034,7 +1034,7 @@ export function ImageStudio() {
     // ==========================================
     // 5. GENERATION LOGIC
     // ==========================================
-    function modelControls(){const native=t2iModels.find(m=>m.id===selectedModel)?.engine==='native';for(const id of ['negative-prompt-input','guidance-slider','lora-input','lora-weight-input']){const el=container.querySelector('#'+id);if(el){el.disabled=native;el.title=native?'This control is available in ComfyUI models; the native distilled model uses fixed guidance.':''}}} modelControls();
+    function modelControls(){const native=t2iModels.find(m=>m.id===selectedModel)?.engine==='native';const stepControl=container.querySelector('#steps-slider');if(stepControl)stepControl.max=native?20:100;for(const id of ['negative-prompt-input','guidance-slider','lora-input','lora-weight-input']){const el=container.querySelector('#'+id);if(el){el.disabled=native;el.title=native?'This control is available in ComfyUI models; the native distilled model uses fixed guidance.':''}}} modelControls();
     generateBtn.id='origin-generate';
     generateBtn.onclick = async () => {
         const prompt = textarea.value.trim() + (selectedStyle === 'None' ? '' : ', '+selectedStyle+' style');
