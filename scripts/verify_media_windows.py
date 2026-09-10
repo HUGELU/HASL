@@ -49,9 +49,15 @@ def main():
     image(app,app.api('/api/studio/generate',{'model':'sd15','prompt':'A sunlit timber pavilion in a garden with red flowers','width':256,'height':256,'steps':2,'guidance_scale':7,'seed':0,'init_asset':result['assets'][0]['id'],'strength':.6}),'comfy-reference')
     report['checks'].append('Real ComfyUI text-to-image and reference-image workflows executed through ORIGIN and saved their outputs and graphs')
     report['result']='passed'
+   except BaseException:
+    report['process_exit_code']=app.proc.poll()
+    diagnostic=app.logpath.read_text(errors='replace').replace(app.key,'[session-redacted]')
+    print('ORIGIN process exit code: '+str(report['process_exit_code'])+'\nLatest ORIGIN output:\n'+diagnostic[-14000:],flush=True)
+    raise
    finally:
-    for source,dest in [(app.home/'media-studio/comfy-runtime.log','comfy-runtime.log'),(app.home/'media-studio/studio.json','studio-state.json')]:
-     if source.exists():shutil.copy2(source,out/dest)
+    data=app.home/'origin0_data'
+    for source,dest in [(app.logpath,'launch.log'),(data/'logs/runtime.log','runtime.log'),(data/'media-studio/comfy-runtime.log','comfy-runtime.log'),(data/'media-studio/studio.json','studio-state.json')]:
+     if source.exists():(out/dest).write_text(source.read_text(errors='replace').replace(app.key,'[session-redacted]'),encoding='utf-8')
  except BaseException as e:report['blocker']=str(e);raise
  finally:(out/'report.json').write_text(json.dumps(report,indent=2))
  print(json.dumps(report))
