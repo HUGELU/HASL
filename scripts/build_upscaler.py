@@ -41,8 +41,10 @@ def main():
         for n in ['LICENSE.txt','LICENSE','LICENSE.md']:
             paths=list(folder.rglob(n))
             for i,path in enumerate(paths):shutil.copy2(path,dest/(folder.name+'-'+str(i)+'-'+n))
+    shutil.copy2(ROOT/'third_party/Real-ESRGAN-LICENSE.txt',dest/'Real-ESRGAN-LICENSE.txt')
     target=('windows' if platform.system()=='Windows' else 'linux')+'-amd64'
     archive=ROOT/'bundled'/('origin0-upscale-'+target+'.zip')
+    archive.parent.mkdir(exist_ok=True)
     with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED) as z:
         for path in sorted(dest.iterdir()):z.write(path,path.name)
     spec={'name':archive.name,'size':archive.stat().st_size,'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'url':'https://github.com/HUGELU/HASL/releases/download/v1.7.0/'+archive.name,'license':'NCNN BSD-3-Clause; Real-ESRGAN BSD-3-Clause','source':MODEL_URL}

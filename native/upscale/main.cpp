@@ -8,6 +8,10 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <atomic>
+#include <mutex>
+#include <thread>
+#include <stdexcept>
 
 int main(int argc, char** argv) {
     try {
@@ -22,15 +26,22 @@ int main(int argc, char** argv) {
         bool gpu=mode=="auto" && ncnn::get_gpu_count()>0;
         {
             ncnn::Net net;
-            net.opt.num_threads=threads;
+            // Each CPU tile has its own extractor. NCNN is built without an
+            // external OpenMP runtime so the host schedules bounded tile workers.
+            net.opt.num_threads=1;
             net.opt.use_vulkan_compute=gpu;
             net.opt.use_fp16_arithmetic=false;
             net.opt.use_fp16_storage=gpu;
             if (gpu) net.set_vulkan_device(ncnn::get_default_gpu_index());
             if (net.load_param(argv[5]) || net.load_model(argv[6])) { std::cerr << "model load failed\n"; return 4; }
             std::cout << "backend=" << (gpu?"vulkan":"cpu") << "\n" << std::flush;
-            const int halo=32, total=((w+tile-1)/tile)*((h+tile-1)/tile); int done=0;
-            for (int y=0;y<h;y+=tile) for (int x=0;x<w;x+=tile) {
+            const int halo=32, cols=(w+tile-1)/tile, total=cols*((h+tile-1)/tile);
+            const int workers=gpu?1:std::min({threads,4,total});
+            std::cout << "workers=" << workers << "\n" << std::flush;
+            std::atomic<int> next{0}; std::atomic<bool> failed{false};
+            std::mutex progress; int done=0; std::string error;
+            auto process_tile=[&](int index) {
+                int y=(index/cols)*tile, x=(index%cols)*tile;
                 int x0=std::max(0,x-halo), y0=std::max(0,y-halo), x1=std::min(w,x+tile+halo), y1=std::min(h,y+tile+halo);
                 int tw=x1-x0, th=y1-y0;
                 std::vector<unsigned char> region((size_t)tw*th*3);
@@ -38,17 +49,29 @@ int main(int argc, char** argv) {
                 ncnn::Mat in=ncnn::Mat::from_pixels(region.data(),ncnn::Mat::PIXEL_RGB,tw,th);
                 const float norm[3]={1.f/255,1.f/255,1.f/255}; in.substract_mean_normalize(nullptr,norm);
                 auto ex=net.create_extractor(); ncnn::Mat out;
-                if(ex.input("data",in) || ex.extract("output",out) || out.w!=tw*4 || out.h!=th*4 || out.c!=3) { std::cerr<<"inference shape failure\n";return 5; }
+                if(ex.input("data",in) || ex.extract("output",out) || out.w!=tw*4 || out.h!=th*4 || out.c!=3) throw std::runtime_error("inference shape failure");
                 int cw=std::min(tile,w-x)*4, ch=std::min(tile,h-y)*4, ox=(x-x0)*4, oy=(y-y0)*4;
                 for(int yy=0;yy<ch;yy++) for(int c=0;c<3;c++) {
                     const float* row=out.channel(c).row(yy+oy);
                     for(int xx=0;xx<cw;xx++) {
-                        float value=row[xx+ox]; if(!std::isfinite(value)){std::cerr<<"nonfinite output\n";return 6;}
+                        float value=row[xx+ox]; if(!std::isfinite(value)) throw std::runtime_error("nonfinite output");
                         output[((size_t)(y*4+yy)*(w*4)+x*4+xx)*3+c]=(unsigned char)std::lround(std::clamp(value,0.f,1.f)*255);
                     }
                 }
+                std::lock_guard<std::mutex> guard(progress);
                 std::cout<<"tile="<<++done<<"/"<<total<<"\n"<<std::flush;
-            }
+            };
+            auto work=[&]() {
+                try { while(!failed.load()) { int index=next.fetch_add(1); if(index>=total) break; process_tile(index); } }
+                catch(const std::exception& e) { failed.store(true); std::lock_guard<std::mutex> guard(progress); error=e.what(); }
+            };
+            std::vector<std::thread> pool;
+            // Keep all workers joinable even if the OS cannot start another.
+            try { for(int i=1;i<workers;i++) pool.emplace_back(work); }
+            catch(const std::exception& e) { failed.store(true); std::lock_guard<std::mutex> guard(progress); error=e.what(); }
+            work();
+            for(auto& worker:pool) worker.join();
+            if(failed.load()) throw std::runtime_error(error);
         }
         ncnn::destroy_gpu_instance();
         std::ofstream result(argv[2],std::ios::binary);result.write((char*)output.data(),output.size());
