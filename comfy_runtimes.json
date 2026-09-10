@@ -1,0 +1,29 @@
+[
+  {
+    "name": "ComfyUI_windows_portable_amd.7z",
+    "url": "https://github.com/Comfy-Org/ComfyUI/releases/download/v0.35.0/ComfyUI_windows_portable_amd.7z",
+    "sha256": "2fa7d6538d9d0cfa1cdc64debda8c49886e4745043f7806ea45e87f6bd1daa87",
+    "size": 1580620142,
+    "license": "GPL-3.0 (ComfyUI); included runtimes retain their licences",
+    "source": "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.35.0",
+    "role": "amd"
+  },
+  {
+    "name": "ComfyUI_windows_portable_intel.7z",
+    "url": "https://github.com/Comfy-Org/ComfyUI/releases/download/v0.35.0/ComfyUI_windows_portable_intel.7z",
+    "sha256": "2b120e05d0c933c934bcaf66b540c4750d91a296dc250670ef6432096e1f8d55",
+    "size": 1497484009,
+    "license": "GPL-3.0 (ComfyUI); included runtimes retain their licences",
+    "source": "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.35.0",
+    "role": "intel"
+  },
+  {
+    "name": "ComfyUI_windows_portable_nvidia.7z",
+    "url": "https://github.com/Comfy-Org/ComfyUI/releases/download/v0.35.0/ComfyUI_windows_portable_nvidia.7z",
+    "sha256": "6fb005a8269c6f5972a8fb76d7a4fc251578ccc7906671a801b382591c791dd2",
+    "size": 1910039517,
+    "license": "GPL-3.0 (ComfyUI); included runtimes retain their licences",
+    "source": "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.35.0",
+    "role": "nvidia"
+  }
+]

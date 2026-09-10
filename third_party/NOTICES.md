@@ -31,3 +31,14 @@ notices are retained in the packaged runtime. ORIGIN's small native host is MIT.
 Exact source/model download hashes appear in scripts/build_upscaler.py, and the
 compiled archive hash appears in upscale_manifest.json. Neither the proprietary
 Higgsfield service nor Autom8AI's MuAPI UI code is incorporated into this binary.
+
+
+## Open-Higgsfield-AI integration
+Adapted vanilla image, reference picker and cinema studio components from Autom8AI/Open-Higgsfield-AI, commit b578108936e83a3b2a5e86644057a56f8aea73a1. The upstream README declares MIT; no root LICENSE file was present in that pinned tree. The original README is preserved at web/open-studio/README.md. Modifications: local ORIGIN/ComfyUI API adapter; honest local-model catalogue; wired advanced parameters; durable outputs; branding; responsive navigation; removed mandatory hosted API key. Original cinema thumbnails and their provenance are retained in web/open-studio/src/lib/camera_assets.js.
+
+Source: https://github.com/Autom8AI/Open-Higgsfield-AI/tree/b578108936e83a3b2a5e86644057a56f8aea73a1
+
+## ComfyUI and archive support
+ComfyUI v0.35.0 is a separately downloaded portable GPL-3.0 engine. Source and licence: https://github.com/Comfy-Org/ComfyUI/tree/v0.35.0. Its embedded Python, PyTorch and other dependencies retain their respective notices. The installer preserves the entire portable environment including notices. ORIGIN does not relabel ComfyUI source as proprietary.
+
+Windows portable extraction uses the operating system’s tar.exe (bsdtar); no additional Go dependency is introduced. White-label configuration changes display branding, not licence obligations.
