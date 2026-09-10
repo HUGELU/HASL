@@ -76,3 +76,7 @@ devices a shared VRAM address space.
 
 See [the technology report](TECHNOLOGY_REPORT.md) for the researched internet,
 distributed-training, source-evolution and full-interface reconstruction path.
+
+## Publish a reviewed recipe
+
+Preview the exact recipe in Concept Studio, inspect the source URLs/captions, and mark it reviewed. The optional contribution form uses a session-only GitHub token with Contents and Pull Requests write access to your HASL fork (or the central repository if you have write access). It creates a new branch and a draft upstream PR. Stale previews and unrelated repositories are rejected. It does not merge automatically or send image bytes. Signed URL queries, credentials and fragments are removed from exported provenance.

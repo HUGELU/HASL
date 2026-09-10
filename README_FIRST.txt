@@ -1,4 +1,4 @@
-ORIGIN-0 v1.5 — LOCAL IMAGE STUDIO
+ORIGIN-0 v1.6 — LOCAL IMAGE STUDIO
 
 WINDOWS FIRST RUN
 1. Put ORIGIN0.exe in a normal folder and double-click it.
@@ -34,7 +34,9 @@ Each PC first prepares its own image engine. The coordinator starts a Worker PCs
 group and creates a private invitation per worker. A worker pastes the invitation,
 sets its job allowance and joins. On the coordinator, select the shared-job
 checkbox before generating. Only explicitly shared prompts go to workers.
-The PCs need a reachable LAN/private-network address. Each group has a coordinator.
+Direct groups need a reachable LAN/private-network address. For internet groups,
+use an operator-deployed HTTPS relay (INTERNET_RELAY.md). Both laptops connect
+outbound; the relay carries encrypted job envelopes. No public relay is supplied.
 This does not pool VRAM or implement torrent transfers/public peer discovery.
 
 SOURCE AND UPDATES
@@ -42,3 +44,10 @@ https://github.com/HUGELU/HASL
 Application: MIT. Default model pack: Apache-2.0. No ORIGIN-0 usage subscription.
 The legacy research, interface and classifier experiments are still available.
 They do not establish automatic improvement of the image model's weights.
+
+NEW CONTROLS
+Concept Studio collects and reviews image examples and evaluates small classifiers.
+Image studio now offers one-image revision, rough previews, batches, ratings and
+saved settings. Hardware defaults are suggestions, not certified performance.
+Settings can protect the interface with a PIN. Save its recovery-code download.
+The PIN does not encrypt files or hide the process from Windows.

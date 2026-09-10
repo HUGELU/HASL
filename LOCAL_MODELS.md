@@ -1,4 +1,4 @@
-# ORIGIN-0 v1.5: local models and rebuilding
+# ORIGIN-0 v1.6: local models and rebuilding
 
 For the tested native image generator, use **Image studio → Set up image engine**.
 That path bundles stable-diffusion.cpp, downloads a verified Z-Image-Turbo model

@@ -19,7 +19,7 @@ jobs:
       - run: python3 build.py --target linux
       - run: go test -race ./...
       - run: go vet ./...
-      - run: node --check web/app.js && node --check web/generator.js && node --check web/evolution.js && node --check web/concepts.js
+      - run: node --check web/app.js && node --check web/generator.js && node --check web/evolution.js && node --check web/concepts.js && node --check web/privacy.js && node --check web/studio_tools.js
       - run: python3 -m unittest discover -s worker
       - name: Install isolated browser test dependencies
         run: |
@@ -67,7 +67,7 @@ jobs:
         run: |
           gh release create v1.6.0 --target "$env:GITHUB_SHA" --title "ORIGIN-0 v1.6 — Concept Studio and internet relay (Windows preview)" --notes-file RELEASE_NOTES.md --draft --prerelease
           if ($LASTEXITCODE -ne 0) { throw 'Release creation failed; no assets were replaced' }
-          gh release upload v1.6.0 release/ORIGIN0.exe release/ORIGIN0_WINDOWS_v1.6.zip release/SHA256SUMS.txt release/windows-acceptance/report.json release/windows-acceptance/image.png release/windows-acceptance/generation.log bundled/origin0-sd-d04e895-windows-amd64-cpu.zip model_catalog.json native-package/imports.txt
+          gh release upload v1.6.0 release/ORIGIN0.exe release/ORIGIN0_WINDOWS_v1.6.zip release/SHA256SUMS.txt release/windows-acceptance/report.json release/windows-acceptance/image.png release/windows-acceptance/generation.log release/windows-acceptance/revision.png release/windows-acceptance/revision.log bundled/origin0-sd-d04e895-windows-amd64-cpu.zip model_catalog.json native-package/imports.txt
           if ($LASTEXITCODE -ne 0) { throw 'Upload failed; release remains a draft' }
           gh release edit v1.6.0 --draft=false --prerelease
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }

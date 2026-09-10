@@ -512,7 +512,7 @@ func (p *ComputePool) join(raw, name string, budget int) error {
 				continue
 			}
 			attempts++
-			if err := validateImageRequest(answer.Job.Request); err != nil || answer.Job.Pack != p.s.catalog.ID || !validID(answer.Job.ID) || len(answer.Job.ID) > 80 || len(answer.Lease) > 160 {
+			if err := validateImageRequest(answer.Job.Request); err != nil || answer.Job.Request.InitAsset != "" || answer.Job.Pack != p.s.catalog.ID || !validID(answer.Job.ID) || len(answer.Job.ID) > 80 || len(answer.Lease) > 160 {
 				p.workerMessage("Rejected invalid image task")
 				return
 			}

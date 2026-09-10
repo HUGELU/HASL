@@ -251,6 +251,7 @@ type Engine struct {
 	stopOnce            sync.Once
 	paused              atomic.Bool
 	sessionKey          string
+	privacy             *PrivacyLock
 	instanceAddr        string
 	modelMu             sync.Mutex
 	provider            Provider
@@ -381,6 +382,7 @@ func NewEngine(base string) *Engine {
 	e.computeTarget.Store(35)
 	e.stop = make(chan struct{})
 	e.sessionKey = randomID()
+	e.privacy = newPrivacy(dataDir)
 	e.initLab()
 	e.ui.Order = append([]string{}, panelIDs...)
 	e.ui.Topology = "grid"
@@ -1446,7 +1448,7 @@ func (e *Engine) view() StateView {
 	labSummary.Learning = LearningState{}
 	labSummary.Studio = ConceptState{}
 	labSummary.Jobs = nil
-	return StateView{Lab: cloneLab(labSummary), Version: "1.5-native-images", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
+	return StateView{Lab: cloneLab(labSummary), Version: "1.6-concept-studio", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
 }
 
 func (e *Engine) requestApproval(kind, request, why string) {

@@ -763,9 +763,25 @@ func conceptRecipe(p ConceptProject) map[string]any {
 		if x.Review != "accepted" {
 			continue
 		}
-		examples = append(examples, map[string]any{"sha256": x.Asset, "label": x.Label, "caption": x.Caption, "group": x.Group, "split": x.Split, "source": x.Source})
+		source := x.Source
+		source.URL = publicProvenance(source.URL)
+		source.Page = publicProvenance(source.Page)
+		source.LicenseURL = publicProvenance(source.LicenseURL)
+		examples = append(examples, map[string]any{"sha256": x.Asset, "label": x.Label, "caption": x.Caption, "group": x.Group, "split": x.Split, "source": source})
 	}
 	return map[string]any{"schema": "origin0.concept.v1", "name": p.Name, "subject": p.Subject, "attributes": p.Attributes, "prompt": conceptPrompt(p), "examples": examples, "evaluation": p.Runs, "note": "Recipe metadata only. Image bytes and model weights are not included. Source licences and permissions apply; inspect before publishing."}
+}
+
+// Public recipes omit URL credentials, fragments and signed query parameters.
+func publicProvenance(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme != "https" || u.Hostname() == "" {
+		return ""
+	}
+	u.User = nil
+	u.RawQuery = ""
+	u.Fragment = ""
+	return u.String()
 }
 func (e *Engine) exportConcept(w http.ResponseWriter, r *http.Request) {
 	var req struct {

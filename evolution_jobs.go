@@ -53,9 +53,10 @@ type JobRequest struct {
 }
 
 var rebuildFiles = []string{
+	"hardware.go", "hardware_windows.go", "hardware_other.go", "privacy.go", "studio_tools.go", "studio_tools_test.go", "privacy_test.go", "web/privacy.js", "web/studio_tools.js",
 	"concept_contributions.go", "concept_contributions_test.go",
 	"internet_relay.go", "internet_relay_test.go", "INTERNET_RELAY.md",
-	"concept_studio.go", "concept_studio_test.go", "web/concepts.js", "web/concepts.css", "TECHNOLOGY_REPORT.md", "CONCEPT_STUDIO.md",
+	"concept_studio.go", "concept_studio_test.go", "web/concepts.js", "web/concepts.css", "MODEL_GUIDE.md", "TECHNOLOGY_REPORT.md", "CONCEPT_STUDIO.md",
 	"go.mod", "main.go", "laboratory.go", "media.go", "learning.go", "adaptive_kernel.go", "evolution_jobs.go",
 	"native_images.go", "downloads.go", "compute_pool.go", "native_images_test.go", "native_process_windows.go", "native_process_other.go",
 	"model_catalog.json", "bundled/README.txt", "web/generator.js", "web/generator.css",
@@ -424,7 +425,7 @@ func writeSourceTree(src map[string]string, dir string) error {
 	names := append([]string{}, rebuildFiles...)
 	sort.Strings(names)
 	var snapshot strings.Builder
-	snapshot.WriteString("ORIGIN-0 v1.5: exact source used for this build.\n")
+	snapshot.WriteString("ORIGIN-0 v1.6: exact source used for this build.\n")
 	for _, name := range names {
 		if err := atomicWrite(filepath.Join(dir, filepath.FromSlash(name)), []byte(src[name])); err != nil {
 			return err

@@ -108,7 +108,7 @@ func downloadPinned(ctx context.Context, client *http.Client, spec DownloadSpec,
 		if err != nil {
 			return err
 		}
-		req.Header.Set("User-Agent", "ORIGIN0/1.5 (+https://github.com/HUGELU/HASL)")
+		req.Header.Set("User-Agent", "ORIGIN0/1.6 (+https://github.com/HUGELU/HASL)")
 		req.Header.Set("Accept-Encoding", "identity")
 		if start > 0 {
 			req.Header.Set("Range", fmt.Sprintf("bytes=%d-", start))

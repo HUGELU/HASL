@@ -105,6 +105,36 @@ def main():
         (output / 'image.png').write_bytes(image)
         (output / 'generation.log').write_text(found['log'], encoding='utf-8')
         report = {'result': 'passed', 'real_diffusion': True, 'version': state['version'], 'platform': current['platform'], 'model_pack': catalog['id'], 'image': {'width': 256, 'height': 256, 'steps': 1, 'seed': 42, 'sha256': hashlib.sha256(image).hexdigest()}, 'elapsed_seconds': round(time.monotonic() - start, 2), 'devices': current['setup']['devices'], 'checks': ['native app startup', 'authenticated API', 'pinned model setup', 'native process execution', 'job completed', 'PNG persisted and downloaded']}
+        reference = found['asset']['id']
+        start_edit = time.monotonic()
+        edit = api('/api/images/generate', {'prompt': 'A photograph of an orange cat on a blue chair in soft warm light.', 'width': 256, 'height': 256, 'steps': 4, 'seed': 43, 'init_asset': reference, 'strength': .5, 'preview': True})
+        preview_seen = False
+        while time.monotonic() < deadline:
+            current = api('/api/images/state', {})
+            edited = next(x for x in current['jobs'] if x['id'] == edit['id'])
+            if not preview_seen:
+                try:
+                    preview = api('/api/images/preview', {'id': edit['id']})
+                    preview_seen = preview[:8] == b'\x89PNG\r\n\x1a\n'
+                except urllib.error.HTTPError as error:
+                    if error.code != 404:
+                        raise
+            if edited['status'] == 'completed':
+                break
+            if edited['status'] in ('failed', 'cancelled'):
+                raise RuntimeError(edited['message'] + '\n' + edited['log'][-4000:])
+            time.sleep(1)
+        else:
+            raise RuntimeError('Reference-image revision exceeded the release deadline')
+        revised = api('/api/asset?id=' + edited['asset']['id'])
+        assert revised[:8] == b'\x89PNG\r\n\x1a\n' and struct.unpack('>II', revised[16:24]) == (256, 256)
+        assert revised != image
+        (output / 'revision.png').write_bytes(revised)
+        (output / 'revision.log').write_text(edited['log'], encoding='utf-8')
+        report['revision'] = {'sha256': hashlib.sha256(revised).hexdigest(), 'elapsed_seconds': round(time.monotonic() - start_edit, 2), 'steps': 4, 'strength': .5, 'preview_observed': preview_seen}
+        metadata = api('/api/images/metadata', {'id': edit['id']})
+        assert metadata['request']['init_asset'] == reference and metadata['schema'] == 'origin0.image.v1'
+        report['checks'] += ['native image-to-image revision', 'changed PNG persisted', 'reference metadata round-trip']
         (output / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
         print(json.dumps(report), flush=True)
     except Exception:

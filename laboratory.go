@@ -605,7 +605,7 @@ func (e *Engine) laboratoryHandler() http.Handler {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(b)
 	})
-	for _, file := range []string{"app.js", "style.css", "evolution.js", "generator.js", "generator.css", "concepts.js", "concepts.css"} {
+	for _, file := range []string{"app.js", "style.css", "evolution.js", "generator.js", "generator.css", "concepts.js", "concepts.css", "privacy.js", "studio_tools.js"} {
 		f := file
 		mux.HandleFunc("/"+f, func(w http.ResponseWriter, r *http.Request) {
 			b, _ := assets.ReadFile("web/" + f)
@@ -1023,6 +1023,7 @@ func (e *Engine) laboratoryHandler() http.Handler {
 	e.nativeImageRoutes(mux)
 	e.conceptRoutes(mux)
 	e.contributionRoutes(mux)
+	e.privacyRoutes(mux)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "no-referrer")
@@ -1062,6 +1063,10 @@ func (e *Engine) laboratoryHandler() http.Handler {
 				limit = 16 << 30
 			}
 			r.Body = http.MaxBytesReader(w, r.Body, limit)
+			if r.URL.Path != "/api/privacy" && e.privacy.isLocked() {
+				http.Error(w, "Workspace locked. Enter your PIN to continue.", http.StatusLocked)
+				return
+			}
 		}
 		mux.ServeHTTP(w, r)
 	})
@@ -1112,7 +1117,7 @@ func (e *Engine) exportBundle(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = add("origin0_data/state.json", bytes.NewReader(b))
 	_ = add("SOURCE_SNAPSHOT.txt", strings.NewReader(e.sourceSnapshot))
-	_ = add("READ_FIRST.txt", strings.NewReader("ORIGIN-0 v1.5 saved branch\nRun the included program from an extracted folder.\nThis contains the current executable and bounded working state.\nLarge raw objects, previous snapshots, credentials and grants are excluded.\nFull recovery requires a separate copy of your original origin0_data folder.\nThis export preserves the same executable; it is not a newly compiled intelligence.\n"))
+	_ = add("READ_FIRST.txt", strings.NewReader("ORIGIN-0 v1.6 saved branch\nRun the included program from an extracted folder.\nThis contains the current executable and bounded working state.\nLarge raw objects, previous snapshots, credentials and grants are excluded.\nFull recovery requires a separate copy of your original origin0_data folder.\nThis export preserves the same executable; it is not a newly compiled intelligence.\n"))
 }
 
 func (e *Engine) acquireInstance() (func(), bool) {

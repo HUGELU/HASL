@@ -116,6 +116,43 @@ def main():
                 expect(mobile.locator('#concept-examples .concept-example')).to_have_count(12)
                 mobile.screenshot(path=str(out / 'concept-mobile.png'), full_page=True)
                 report['checks'].append('Six viewport widths had no horizontal page overflow; touch navigation opened the saved dataset')
+                mobile.close()
+                page.set_viewport_size({'width': 1440, 'height': 1000})
+                page.get_by_role('button', name='Image studio', exact=True).click()
+                page.locator('#native-profile').select_option('draft')
+                expect(page.locator('#native-steps')).to_have_value('4')
+                expect(page.locator('#native-size')).to_have_value('256x256')
+                page.screenshot(path=str(out / 'image-studio.png'), full_page=True)
+                for width in [280, 390, 768, 1440]:
+                    page.set_viewport_size({'width': width, 'height': 1000})
+                    assert not page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1'), f'Image studio overflows at {width}px'
+                report['checks'].append('Hardware-aware draft profile changed real controls; image studio fit four viewport widths')
+                page.set_viewport_size({'width': 1440, 'height': 1000})
+                page.get_by_role('button', name='Settings', exact=True).click()
+                page.locator('#privacy-new').fill('730491')
+                page.locator('#privacy-confirm').fill('730491')
+                with page.expect_download() as download:
+                    page.get_by_role('button', name='Set PIN & download recovery code', exact=True).click()
+                recovery = re.search(r'\b[a-f0-9]{48}\b', Path(download.value.path()).read_text()).group()
+                page.get_by_role('button', name='Lock screen', exact=True).click()
+                expect(page.locator('#privacy-code')).to_be_visible()
+                assert page.locator('.app').is_hidden()
+                try:
+                    api('/api/state')
+                    raise AssertionError('Locked backend exposed state')
+                except urllib.error.HTTPError as error:
+                    assert error.code == 423
+                page.screenshot(path=str(out / 'locked-workspace.png'), full_page=True)
+                page.locator('#privacy-code').fill('730491')
+                page.get_by_role('button', name='Unlock workspace', exact=True).click()
+                expect(page.locator('#native-prompt')).to_be_visible()
+                page.get_by_role('button', name='Lock screen', exact=True).click()
+                expect(page.locator('#privacy-code')).to_be_visible()
+                page.get_by_text('Use recovery code', exact=True).click()
+                page.locator('#privacy-recovery-input').fill(recovery)
+                page.get_by_role('button', name='Recover and remove PIN', exact=True).click()
+                expect(page.locator('#native-prompt')).to_be_visible()
+                report['checks'].append('PIN setup, private recovery download, server-enforced lock, unlock and recovery passed')
                 assert not report['console_errors'], report['console_errors']
                 browser.close()
             report['result'] = 'passed'

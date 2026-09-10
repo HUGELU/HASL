@@ -20,29 +20,34 @@ import (
 )
 
 type ImageRequest struct {
-	Prompt string `json:"prompt"`
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
-	Steps  int    `json:"steps"`
-	Seed   int64  `json:"seed"`
-	Shared bool   `json:"shared"`
+	Prompt    string  `json:"prompt"`
+	Width     int     `json:"width"`
+	Height    int     `json:"height"`
+	Steps     int     `json:"steps"`
+	Seed      int64   `json:"seed"`
+	Shared    bool    `json:"shared"`
+	InitAsset string  `json:"init_asset,omitempty"`
+	Strength  float64 `json:"strength,omitempty"`
+	Preview   bool    `json:"preview,omitempty"`
 }
 type ImageJob struct {
-	ID         string       `json:"id"`
-	Request    ImageRequest `json:"request"`
-	Status     string       `json:"status"`
-	Created    int64        `json:"created"`
-	Started    int64        `json:"started"`
-	Finished   int64        `json:"finished"`
-	Message    string       `json:"message"`
-	Backend    string       `json:"backend"`
-	Pack       string       `json:"pack"`
-	Log        string       `json:"log"`
-	Asset      *AssetRecord `json:"asset,omitempty"`
-	Worker     string       `json:"worker,omitempty"`
-	Attempts   int          `json:"attempts"`
-	Lease      string       `json:"-"`
-	LeaseUntil int64        `json:"-"`
+	ID         string         `json:"id"`
+	Request    ImageRequest   `json:"request"`
+	Status     string         `json:"status"`
+	Created    int64          `json:"created"`
+	Started    int64          `json:"started"`
+	Finished   int64          `json:"finished"`
+	Message    string         `json:"message"`
+	Backend    string         `json:"backend"`
+	Pack       string         `json:"pack"`
+	Log        string         `json:"log"`
+	Asset      *AssetRecord   `json:"asset,omitempty"`
+	Worker     string         `json:"worker,omitempty"`
+	Attempts   int            `json:"attempts"`
+	Lease      string         `json:"-"`
+	LeaseUntil int64          `json:"-"`
+	Ratings    *ImageRatings  `json:"ratings,omitempty"`
+	Progress   map[string]any `json:"progress,omitempty"`
 }
 type ImageConfig struct {
 	Backend    string `json:"backend"`
@@ -59,25 +64,26 @@ type SetupStatus struct {
 	Devices string `json:"devices"`
 }
 type NativeImages struct {
-	e         *Engine
-	mu        sync.Mutex
-	persistMu sync.Mutex
-	wg        sync.WaitGroup
-	closed    bool
-	config    ImageConfig
-	catalog   ModelCatalog
-	setup     SetupStatus
-	jobs      []*ImageJob
-	ready     bool
-	cli       string
-	cancel    context.CancelFunc
-	active    string
-	pool      *ComputePool
-	client    *http.Client
+	e             *Engine
+	mu            sync.Mutex
+	persistMu     sync.Mutex
+	wg            sync.WaitGroup
+	closed        bool
+	config        ImageConfig
+	catalog       ModelCatalog
+	setup         SetupStatus
+	jobs          []*ImageJob
+	ready         bool
+	cli           string
+	cancel        context.CancelFunc
+	active        string
+	pool          *ComputePool
+	client        *http.Client
+	actualBackend string
 }
 
 func newNativeImages(e *Engine) *NativeImages {
-	s := &NativeImages{e: e, config: ImageConfig{Backend: "auto", Threads: minInt(8, maxInt(1, runtime.NumCPU()-2)), MaxMinutes: 60}, setup: SetupStatus{Status: "needed", Message: "Set up the local image engine to begin."}, client: &http.Client{Transport: &http.Transport{Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 45 * time.Second, IdleConnTimeout: 60 * time.Second}}}
+	s := &NativeImages{e: e, config: recommendImage(HardwareProfile{Threads: runtime.NumCPU(), Memory: physicalMemory()}, "balanced", false).Config, setup: SetupStatus{Status: "needed", Message: "Set up the local image engine to begin."}, client: &http.Client{Transport: &http.Transport{Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 45 * time.Second, IdleConnTimeout: 60 * time.Second}}}
 	b, _ := assets.ReadFile("model_catalog.json")
 	_ = json.Unmarshal(b, &s.catalog)
 	var saved struct {
@@ -146,6 +152,15 @@ func (s *NativeImages) status() any {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	// Copy before releasing the lock; the HTTP encoder runs later.
+	jobs := make([]*ImageJob, 0, len(s.jobs))
+	for i, j := range s.jobs {
+		x := *j
+		x.Progress = imageProgress(x)
+		if i < len(s.jobs)-32 {
+			x.Log = ""
+		}
+		jobs = append(jobs, &x)
+	}
 	b, _ := json.Marshal(struct {
 		Config   ImageConfig  `json:"config"`
 		Setup    SetupStatus  `json:"setup"`
@@ -155,7 +170,7 @@ func (s *NativeImages) status() any {
 		Platform string       `json:"platform"`
 		Folder   string       `json:"folder"`
 		Busy     bool         `json:"busy"`
-	}{s.config, s.setup, s.ready, s.jobs, s.catalog, runtime.GOOS + "/" + runtime.GOARCH, s.root(), s.cancel != nil})
+	}{s.config, s.setup, s.ready, jobs, s.catalog, runtime.GOOS + "/" + runtime.GOARCH, s.root(), s.cancel != nil})
 	var v any
 	_ = json.Unmarshal(b, &v)
 	return v
@@ -291,6 +306,7 @@ func (s *NativeImages) setupEngine(ctx context.Context, cfg ImageConfig) error {
 	}
 	s.mu.Lock()
 	s.cli = cli
+	s.actualBackend = backend
 	s.setup.Devices = strings.TrimSpace(devices)
 	s.setup.File = s.setup.Files
 	s.mu.Unlock()
@@ -321,11 +337,24 @@ func validateImageRequest(r ImageRequest) error {
 	if r.Steps < 1 || r.Steps > 20 || r.Seed < 0 || r.Seed > 2147483647 {
 		return errors.New("use 1–20 steps and a seed from 0 to 2147483647")
 	}
+	if r.InitAsset != "" {
+		if !validAssetID(r.InitAsset) || r.Strength < 0.15 || r.Strength > 1 || int(float64(r.Steps)*r.Strength) < 1 {
+			return errors.New("use a stored PNG/JPEG, strength 0.15–1.0 and enough steps for at least one denoising step")
+		}
+		if r.Shared {
+			return errors.New("image-to-image references currently stay local; turn off worker sharing for this job")
+		}
+	}
 	return nil
 }
 func (s *NativeImages) submit(r ImageRequest) (ImageJob, error) {
 	if err := validateImageRequest(r); err != nil {
 		return ImageJob{}, err
+	}
+	if r.InitAsset != "" {
+		if _, err := s.referenceImage(r.InitAsset); err != nil {
+			return ImageJob{}, err
+		}
 	}
 	if r.Shared {
 		s.pool.mu.Lock()
@@ -350,16 +379,16 @@ func (s *NativeImages) submit(r ImageRequest) (ImageJob, error) {
 			pending++
 		}
 	}
-	if pending >= 16 {
+	if pending >= 256 {
 		s.mu.Unlock()
-		return ImageJob{}, errors.New("16 jobs are already queued; wait for a result")
+		return ImageJob{}, errors.New("256 jobs are queued; wait for a result before adding more")
 	}
 	j := &ImageJob{ID: "img-" + randomID()[:16], Request: r, Status: "queued", Created: now(), Message: "Waiting for local generator", Pack: s.catalog.ID}
 	if r.Shared {
 		j.Message = "Waiting for an explicitly joined worker PC"
 	}
 	s.jobs = append(s.jobs, j)
-	if len(s.jobs) > 200 {
+	if len(s.jobs) > 1000 {
 		for i, x := range s.jobs {
 			if x.Status != "running" && x.Status != "queued" {
 				s.jobs = append(s.jobs[:i], s.jobs[i+1:]...)
@@ -391,6 +420,9 @@ func (s *NativeImages) kick() {
 		return
 	}
 	cfg := s.config
+	if s.actualBackend != "" {
+		cfg.Backend = s.actualBackend
+	}
 	cli := s.cli
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.MaxMinutes)*time.Minute)
 	s.cancel = cancel
@@ -477,6 +509,20 @@ func (s *NativeImages) run(ctx context.Context, cli string, cfg ImageConfig, r I
 	defer f.Close()
 	output := filepath.Join(dir, "output.png")
 	args := imageArgs(s.modelPath("image"), s.modelPath("text"), s.modelPath("vae"), output, r, cfg)
+	if r.InitAsset != "" {
+		b, err := s.referenceImage(r.InitAsset)
+		if err != nil {
+			return nil, err
+		}
+		input := filepath.Join(dir, "input.png")
+		if err = atomicWrite(input, b); err != nil {
+			return nil, err
+		}
+		args = append(args, "--init-img", input, "--strength", strconv.FormatFloat(r.Strength, 'f', 3, 64))
+	}
+	if r.Preview {
+		args = append(args, "--preview", "proj", "--preview-interval", "2", "--preview-path", filepath.Join(dir, "preview.png"))
+	}
 	cmd := nativeCommand(ctx, cli, args...)
 	writer := &progressLog{fn: log, file: f}
 	cmd.Stdout = writer
@@ -590,11 +636,13 @@ func (e *Engine) nativeImageRoutes(mux *http.ServeMux) {
 		w.Header().Set("Content-Disposition", "attachment; filename=ORIGIN0_DIAGNOSTICS.json")
 		// Deliberately excludes prompts, images, peer credentials and session keys.
 		s.mu.Lock()
-		v := map[string]any{"version": "1.5", "os": runtime.GOOS, "arch": runtime.GOARCH, "cpus": runtime.NumCPU(), "config": s.config, "setup": s.setup, "ready": s.ready, "catalog": s.catalog.ID, "folder": s.root()}
+		v := map[string]any{"version": "1.6", "os": runtime.GOOS, "arch": runtime.GOARCH, "cpus": runtime.NumCPU(), "config": s.config, "setup": s.setup, "ready": s.ready, "catalog": s.catalog.ID, "folder": s.root(), "actual_backend": s.actualBackend}
 		s.mu.Unlock()
 		jsonReply(w, v)
 	})
 	s.pool.routes(mux)
+	s.hardwareRoutes(mux)
+	s.studioRoutes(mux)
 }
 
 // On subsequent starts this only probes a previously verified native runtime.
@@ -603,6 +651,7 @@ func (s *NativeImages) resumeReady() {
 	var receipt struct {
 		Catalog string `json:"catalog"`
 		CLI     string `json:"cli"`
+		Runtime string `json:"runtime"`
 	}
 	b, err := os.ReadFile(filepath.Join(s.root(), "verified.json"))
 	if err != nil || json.Unmarshal(b, &receipt) != nil || receipt.Catalog != s.catalog.ID {
@@ -644,6 +693,7 @@ func (s *NativeImages) resumeReady() {
 			return
 		}
 		s.cli = receipt.CLI
+		s.actualBackend = receipt.Runtime
 		s.ready = true
 		s.setup.Status = "ready"
 		s.setup.Message = "Installed engine ready. No download needed."
