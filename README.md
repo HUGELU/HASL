@@ -1,5 +1,13 @@
 # ORIGIN-0 / AUTO-KI · Open Creative Studio
 
+**[Download Windows v1.8.0](https://github.com/HUGELU/HASL/releases/download/v1.8.0/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.8.0.zip)** ·
+[Standalone ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.8.0/ORIGIN0.exe) ·
+[Validation, checksums and recovery](https://github.com/HUGELU/HASL/releases/tag/v1.8.0)
+
+Extract the ZIP, run **ORIGIN0.exe**, then open **Creative studio → Models & engines**.
+Download a model pack and choose **Use model**. Keep your existing `origin0_data`
+folder when upgrading; stop the earlier ORIGIN process first.
+
 The creative workspace embeds adapted **Autom8AI/Open-Higgsfield-AI** image,
 reference-input and cinema components and connects them to local generation.
 Use **Models & engines** for seven pinned model packs, verified resumable downloads,
@@ -18,8 +26,12 @@ localhost; use an authorised localhost tunnel for a remote workstation.
 
 See [MEDIA_STUDIO.md](MEDIA_STUDIO.md) for setup, provenance and scope and
 [RECOVERY_MEDIA_STUDIO.md](RECOVERY_MEDIA_STUDIO.md) for the saved checkpoint.
-The previous release remains available until this integration passes Windows
-acceptance and receives its own versioned download.
+The v1.8.0 executable passed the complete Windows first-run path: verified portable
+ComfyUI installation, native generation, ComfyUI generation and reference editing.
+The package includes the actual images, parameters, logs and browser evidence.
+The acceptance images used 256 × 256 pixels and two steps on a four-thread CPU;
+they establish functioning integration, not superior image quality. Intel GPU
+performance and the larger model packs still require hardware-specific validation.
 
 Common Vision, its five linked document views and human review boundaries,
 production/architectural tools, local learning, saved branches, privacy PIN and
@@ -48,21 +60,17 @@ measured property plans, photo walkthroughs and local coding experiments.
 Application code: **MIT**. Z-Image-Turbo weights: **Apache-2.0**.
 Real-ESRGAN/NCNN: **BSD-3-Clause**.
 
-[Windows v1.7.0 ZIP](https://github.com/HUGELU/HASL/releases/download/v1.7.0/ORIGIN0_WINDOWS_v1.7.0.zip) ·
-[ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.7.0/ORIGIN0.exe) ·
-[Release evidence and checksums](https://github.com/HUGELU/HASL/releases/tag/v1.7.0)
-
-The v1.7.0 release workflow publishes these downloads only after source, browser
-and actual native Windows image-generation tests pass. See
-[validation](VALIDATION_V17.md) for the exact scope.
+Use the current v1.8.0 downloads at the top of this page. Earlier production
+evidence remains available in [v1.7.0](https://github.com/HUGELU/HASL/releases/tag/v1.7.0)
+and its [validation report](VALIDATION_V17.md).
 
 ## Start on Windows
 
 1. Extract the ZIP into a normal writable folder and double-click **ORIGIN0.exe**.
 2. Keep the console open. It prints the local address and opens your browser.
-3. In **Image studio**, click **Set up image engine**. The first run downloads
+3. In **Creative studio → Models & engines**, download the native Z-Image-Turbo pack. The first run downloads
    **6.52 GB** of pinned model files, with visible progress and resumable downloads.
-4. Wait for **Ready**, enter a prompt and click **Generate image**.
+4. Wait for **Files ready**, choose **Use model**, enter a prompt and click **Generate**.
 
 The native CPU runtime is inside the release executable. This image path needs
 **no Python, API key or paid subscription**. Keep at least 10 GB of disk space

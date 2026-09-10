@@ -1,5 +1,26 @@
 # Open Studio recovery checkpoint
 
+## Published and verified — 10 September 2026
+
+Release: https://github.com/HUGELU/HASL/releases/tag/v1.8.0
+
+Tested application commit: **106e8cd057e457b26a794d8e60326bd118ab9b06**, branch **origin0-media-studio**, PR **https://github.com/HUGELU/HASL/pull/6**.
+
+Passing validation and publication run: https://github.com/HUGELU/HASL/actions/runs/34532281015. Source/race/vet, restricted-container, retained Concept/Production/Common Vision API and browser checks, new Open Studio browser checks, Windows tests/vet and the complete Windows generation path passed. Windows produced a native image in 117.30 s, a ComfyUI image in 70.27 s and a ComfyUI reference edit in 26.08 s. All three were 256 × 256 at two steps on a four-thread CPU. There were **zero polling recoveries** and no recorded application panic. ComfyUI reported v0.35.0, embedded Python 3.13.14 and PyTorch 2.13.0+xpu running on CPU.
+
+The Windows image-generation test is **complete for this release**. Its results are functional acceptance evidence, not a quality or performance comparison with commercial models.
+
+- Executable SHA-256: `708e4fba24ecf29e0040d48954e482cc32d38943d7cf4bd3bec902b92ae91498`
+- ZIP SHA-256: `be86783b97b34c6cbf93648f56b866464b1b815161b1088c169ff66fd247fe98`
+- Published files: `ORIGIN0.exe`, `ORIGIN0_OPEN_STUDIO_WINDOWS_v1.8.0.zip`, `OPEN_STUDIO_SHA256SUMS.txt`, `MEDIA_VALIDATION.json`, `MEDIA_RECOVERY.md`.
+- The ZIP retains actual generated images, workflow/parameter metadata, logs, screenshots and browser/video validation outputs. Release artifact 10174635743 contains the same deliverables. Failed-run evidence is recorded below and separately preserved in the diagnostic recovery bundle.
+
+Remaining steps: test automatic Intel GPU execution on the owner's Galaxy Book5 Pro 360; validate larger FLUX/Qwen packs on suitable hardware; add curated video and multi-reference recipes to the simple studio while retaining full ComfyUI workflow access; obtain the owner's original 12 + 1 values. No foundational values or consequential actions are automatically adopted.
+
+Recovery: stop ORIGIN before copying its complete `origin0_data` directory. Keep that directory when replacing only the executable. Media settings and jobs are in `media-studio/studio.json`; original assets stay in the object store. Prior releases and the pre-Common-Vision recovery branch remain preserved. The historical entries below explain earlier failed candidates; the published result above supersedes their pending-test status.
+
+## Development history
+
 Base: main 70ef76d580329d2ff6f40025d5b42b7d326e4f08; PR #5 and v1.7.1 remain intact. Working branch: origin0-media-studio. Previous dirty work remains on recovery/pre-common-vision-20260910.
 
 Implemented in this work: pinned Open-Higgsfield-AI image/reference/cinema components; same-origin native/ComfyUI adapter; seven complete local model packs; checksum/resume downloads; official ComfyUI Intel/AMD/NVIDIA portable installer; full workflow editor access and API workflow submission; durable outputs/parameters; name, colour and logo branding; Common Vision retained.
