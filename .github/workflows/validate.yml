@@ -1,7 +1,7 @@
 name: Validate source and native Windows image generation
 on:
   push:
-    branches: [main, origin0-release, origin0-finishing]
+    branches: [main, origin0-release, origin0-finishing, origin0-common-vision]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -82,6 +82,10 @@ jobs:
         run: python3 scripts/verify_concept_browser.py --binary release/origin0-linux-amd64
       - name: Exercise Production Studio and export an actual video
         run: python3 scripts/verify_production_browser.py --binary release/origin0-linux-amd64
+      - name: Exercise Common Vision persistence and human review
+        run: python3 scripts/verify_common_vision_api.py --binary release/origin0-linux-amd64
+      - name: Exercise Common Vision in Chromium
+        run: python3 scripts/verify_common_vision_browser.py --binary release/origin0-linux-amd64
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -90,6 +94,8 @@ jobs:
             release/browser-acceptance/
             release/production-acceptance/
             release/production-browser/
+            release/common-vision-api/
+            release/common-vision-browser/
             release/container-acceptance/
             bundled/origin0-upscale-linux-amd64.zip
             upscale_manifest.json
@@ -170,4 +176,66 @@ jobs:
             release/windows-production/
             release/production-report.json
             release/upscale_manifest.json
+          retention-days: 14
+
+  common_vision_windows:
+    needs: source
+    if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-common-vision' && contains(github.event.head_commit.message, '[vision-preview]')
+    runs-on: windows-2022
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: Prepare existing pinned native image runtime
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/prepare_windows_runtime.ps1
+      - name: Prepare existing pinned neural finishing runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/prepare_upscaler.py
+      - run: python build.py --target windows
+      - run: go test ./...
+      - run: go vet ./...
+      - name: Exercise actual Windows Common Vision cycle
+        run: python scripts/verify_common_vision_api.py --binary release/ORIGIN0.exe --output release/common-vision-windows
+      - name: Preserve this run's passed browser and API evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/collect_source_evidence.py --common-vision
+      - name: Package the Common Vision prototype
+        run: python scripts/package_common_vision.py
+      - name: Publish tested Common Vision preview
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          $savedHead = gh api repos/$env:GH_REPO/git/ref/heads/origin0-common-vision --jq '.object.sha'
+          if ($savedHead -ne $env:EXPECTED_HEAD) { throw 'A newer source revision exists; publication stopped.' }
+          gh release view v1.7.1 *> $null
+          if ($LASTEXITCODE -eq 0) { throw 'Release v1.7.1 already exists; do not overwrite it.' }
+          gh release create v1.7.1 --target $env:EXPECTED_HEAD --draft --prerelease --title 'ORIGIN-0 v1.7.1 — Common Vision prototype' --notes-file COMMON_VISION.md
+          if ($LASTEXITCODE -ne 0) { throw 'Release creation failed' }
+          gh release upload v1.7.1 release/ORIGIN0.exe release/ORIGIN0_COMMON_VISION_WINDOWS_v1.7.1.zip release/COMMON_VISION_SHA256SUMS.txt release/common-vision-windows/report.json release/COMMON_VISION_RECOVERY.md
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed' }
+          gh release edit v1.7.1 --draft=false
+          if ($LASTEXITCODE -ne 0) { throw 'Publication failed' }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: origin0-common-vision-windows
+          path: |
+            release/ORIGIN0.exe
+            release/ORIGIN0_COMMON_VISION_WINDOWS_v1.7.1.zip
+            release/COMMON_VISION_SHA256SUMS.txt
+            release/common-vision-windows/
           retention-days: 14
