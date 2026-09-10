@@ -6,7 +6,30 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: origin0-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
+  superseded:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-concept-studio'
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Cancel obsolete unpublished release-candidate runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          runs = json.loads(subprocess.check_output(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/actions/runs?branch=origin0-concept-studio&event=push&per_page=20']))['workflow_runs']
+          current = int(os.environ['GITHUB_RUN_ID'])
+          for run in runs:
+              if run['id'] < current and run['status'] in ('queued', 'in_progress'):
+                  subprocess.run(['gh', 'api', '-X', 'POST', f'repos/{os.environ["GH_REPO"]}/actions/runs/{run["id"]}/cancel'], check=False)
+          PY
   source:
     runs-on: ubuntu-24.04
     timeout-minutes: 18
@@ -65,6 +88,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          $head = gh api repos/$env:GITHUB_REPOSITORY/git/ref/heads/origin0-concept-studio --jq '.object.sha'
+          if ($LASTEXITCODE -ne 0 -or $head.Trim() -ne $env:GITHUB_SHA) { throw 'A newer release candidate exists; this run will not publish' }
           gh release create v1.6.0 --target "$env:GITHUB_SHA" --title "ORIGIN-0 v1.6 — Concept Studio and internet relay (Windows preview)" --notes-file RELEASE_NOTES.md --draft --prerelease
           if ($LASTEXITCODE -ne 0) { throw 'Release creation failed; no assets were replaced' }
           gh release upload v1.6.0 release/ORIGIN0.exe release/ORIGIN0_WINDOWS_v1.6.zip release/SHA256SUMS.txt release/windows-acceptance/report.json release/windows-acceptance/image.png release/windows-acceptance/generation.log release/windows-acceptance/revision.png release/windows-acceptance/revision.log bundled/origin0-sd-d04e895-windows-amd64-cpu.zip model_catalog.json native-package/imports.txt
