@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -177,16 +178,19 @@ func (e *Engine) walkthroughHTML(ctx context.Context, p ArchitectureProject) (st
 	}
 	data, _ := json.Marshal(frames)
 	parts := strings.SplitN(walkthroughTemplate, "__FRAMES__", 2)
-	page := strings.ReplaceAll(parts[0], "__TITLE__", html.EscapeString(p.Name)) + string(data) + parts[1]
+	page := strings.ReplaceAll(parts[0], "__TITLE__", html.EscapeString(p.Name)) + string(data) + strings.ReplaceAll(parts[1], "__PLAYER__", walkthroughScript)
 	return page, nil
 }
 
-const walkthroughTemplate = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>__TITLE__</title><style>body{margin:0;background:#151715;color:#eee;font:16px system-ui}main{max-width:1280px;margin:auto;padding:20px}canvas{width:100%;height:auto;background:#111}button{padding:12px;margin:4px;border:1px solid #888;border-radius:8px;background:#262c26;color:white}p{line-height:1.5}progress{width:100%}</style><main><h1>__TITLE__</h1><p>Photo walkthrough · an ordered sequence of supplied views, with gentle motion. This does not reconstruct a navigable 3D scene.</p><canvas id="canvas" width="1920" height="1080"></canvas><progress id="progress" max="1" value="0"></progress><div><button id="play">Play</button><button id="record">Export WebM video</button><button id="stop">Stop</button></div><p id="status" role="status">Ready. Video export plays in real time; keep this tab visible.</p></main><script>
-const frames=__FRAMES__,canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),status=document.getElementById('status');let raf=0,rec=null,stream=null,running=false;const total=frames.reduce((a,f)=>a+f.seconds,0),images=frames.map(f=>{const i=new Image();i.src=f.image;return i});
+const walkthroughTemplate = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>__TITLE__</title><style>body{margin:0;background:#151715;color:#eee;font:16px system-ui}main{max-width:1280px;margin:auto;padding:20px}canvas{width:100%;height:auto;background:#111}button{padding:12px;margin:4px;border:1px solid #888;border-radius:8px;background:#262c26;color:white}p{line-height:1.5}progress{width:100%}</style><main><h1>__TITLE__</h1><p>Photo walkthrough · an ordered sequence of supplied views, with gentle motion. This does not reconstruct a navigable 3D scene.</p><canvas id="canvas" width="1920" height="1080"></canvas><progress id="progress" max="1" value="0"></progress><div><button id="play">Play</button><button id="record">Export WebM video</button><button id="stop">Stop</button></div><p id="status" role="status">Ready. Video export plays in real time; keep this tab visible.</p></main><script type="application/json" id="frames">__FRAMES__</script><script>__PLAYER__</script></html>`
+
+const walkthroughScript = `const frames=JSON.parse(document.getElementById('frames').textContent),canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),status=document.getElementById('status');let raf=0,rec=null,stream=null,running=false;const total=frames.reduce((a,f)=>a+f.seconds,0),images=frames.map(f=>{const i=new Image();i.src=f.image;return i});
 function draw(t){let start=0,k=0;while(k<frames.length-1&&t>start+frames[k].seconds){start+=frames[k].seconds;k++}const f=frames[k],im=images[k],u=Math.min(1,(t-start)/f.seconds),scale=Math.min(canvas.width/im.width,canvas.height/im.height)*(1+.025*u);ctx.fillStyle='#111';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(im,(canvas.width-im.width*scale)/2,(canvas.height-im.height*scale)/2,im.width*scale,im.height*scale);ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(0,990,1920,90);ctx.fillStyle='white';ctx.font='30px sans-serif';ctx.fillText(f.label,40,1045,1840);document.getElementById('progress').value=Math.min(1,t/total)}
 async function start(record){if(running)return;await Promise.all(images.map(i=>i.decode()));if(record&&(!window.MediaRecorder||!MediaRecorder.isTypeSupported('video/webm;codecs=vp9'))){status.textContent='This browser does not support VP9 WebM recording. Playback remains available.';return}let chunks=[];if(record){stream=canvas.captureStream(24);rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:8000000});rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};rec.onstop=()=>{const u=URL.createObjectURL(new Blob(chunks,{type:'video/webm'})),a=document.createElement('a');a.href=u;a.download='ORIGIN0_WALKTHROUGH.webm';a.click();setTimeout(()=>URL.revokeObjectURL(u),30000);stream.getTracks().forEach(t=>t.stop());status.textContent='Video export saved. Review playback before sharing.'};rec.start(1000)}running=true;const epoch=performance.now();status.textContent=record?'Recording locally in real time…':'Playing…';function tick(now){const t=(now-epoch)/1000;draw(Math.min(t,total));if(t<total&&running){raf=requestAnimationFrame(tick)}else stop()}raf=requestAnimationFrame(tick)}
 function stop(){running=false;cancelAnimationFrame(raf);if(rec?.state==='recording')rec.stop();else status.textContent='Stopped.'}document.getElementById('play').onclick=()=>start(false).catch(e=>status.textContent=e.message);document.getElementById('record').onclick=()=>start(true).catch(e=>status.textContent=e.message);document.getElementById('stop').onclick=stop;document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){stop();status.textContent='Stopped because the tab became hidden. Export may be partial.'}});Promise.all(images.map(i=>i.decode())).then(()=>draw(0));
-</script></html>`
+`
+
+func walkthroughScriptHash() string { sum := sha256.Sum256([]byte(walkthroughScript)); return base64.StdEncoding.EncodeToString(sum[:]) }
 
 func (e *Engine) architectureRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/architecture/save", func(w http.ResponseWriter, r *http.Request) {

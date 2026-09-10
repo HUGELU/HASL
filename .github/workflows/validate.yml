@@ -52,8 +52,8 @@ jobs:
       - name: Verify a candidate inside the actual restricted Docker container
         shell: bash
         run: |
-          docker pull golang:1.27.1
-          ORIGIN0_TEST_DOCKER_IMAGE=$(docker image inspect golang:1.27.1 --format '{{index .RepoDigests 0}}')
+          docker pull golang:1.27.1@sha256:f44f6e88636cfb311f9ebace870ded69d943f227bb3cb27d32ffd84ea18c43ea
+          ORIGIN0_TEST_DOCKER_IMAGE=$(docker image inspect golang:1.27.1@sha256:f44f6e88636cfb311f9ebace870ded69d943f227bb3cb27d32ffd84ea18c43ea --format '{{index .RepoDigests 0}}')
           export ORIGIN0_TEST_DOCKER_IMAGE
           ORIGIN0_TEST_DOCKER=$(command -v docker)
           export ORIGIN0_TEST_DOCKER

@@ -155,6 +155,13 @@ func TestWalkthroughEscapesCaptionsAndKeepsPhotos(t *testing.T) {
 	if strings.Contains(html, "</script><script>alert") || !strings.Contains(html, "data:image/png;base64,") || !strings.Contains(html, "__FRAMES__ &lt;script&gt;") || !strings.Contains(html, "MediaRecorder") {
 		t.Fatal("unsafe or incomplete walkthrough")
 	}
+	if !strings.Contains(html, `<script type="application/json" id="frames">`) || !strings.Contains(html, "<script>"+walkthroughScript+"</script>") {
+		t.Fatal("walkthrough data and fixed executable player must remain separate")
+	}
+	response := call(e, "GET", "/api/state", nil)
+	if !strings.Contains(response.Header().Get("Content-Security-Policy"), "'sha256-"+walkthroughScriptHash()+"'") {
+		t.Fatal("the fixed preview player cannot run under the parent CSP")
+	}
 }
 func TestDevelopmentProposalAndSandboxBoundary(t *testing.T) {
 	p := CodeProposal{File: "adaptive_kernel.go", Content: "package main\nfunc testValue() int {return 1}\n"}

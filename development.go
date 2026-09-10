@@ -179,7 +179,7 @@ func localCodeRequest(ctx context.Context, p Provider, prompt string) (CodePropo
 	return proposal, err
 }
 func sandboxArgs(name, source, image string) []string {
-	return []string{"run", "--pull=never", "--name", name, "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--pids-limit", "128", "--memory", "2g", "--memory-swap", "2g", "--cpus", "2", "--user", "65534:65534", "--mount", "type=bind,src=" + source + ",dst=/src,readonly", "--tmpfs", "/tmp:rw,nosuid,nodev,size=1073741824,mode=1777", "--env", "GOCACHE=/tmp/cache", "--env", "GOMODCACHE=/tmp/modules", "--env", "GOPROXY=off", "--env", "GOSUMDB=off", "--env", "GOTOOLCHAIN=local", "--env", "GOENV=off", "--env", "GOWORK=off", "--env", "CGO_ENABLED=0", "--workdir", "/src", image, "go", "test", "-buildvcs=false", "-count=1", "-timeout=180s", "./..."}
+	return []string{"run", "--pull=never", "--name", name, "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--pids-limit", "128", "--memory", "2g", "--memory-swap", "2g", "--cpus", "2", "--user", "65534:65534", "--mount", "type=bind,src=" + source + ",dst=/src,readonly", "--tmpfs", "/tmp:rw,exec,nosuid,nodev,size=1073741824,mode=1777", "--env", "GOCACHE=/tmp/cache", "--env", "GOMODCACHE=/tmp/modules", "--env", "GOPROXY=off", "--env", "GOSUMDB=off", "--env", "GOTOOLCHAIN=local", "--env", "GOENV=off", "--env", "GOWORK=off", "--env", "CGO_ENABLED=0", "--workdir", "/src", image, "go", "test", "-buildvcs=false", "-count=1", "-timeout=180s", "./..."}
 }
 func testCodeCandidate(ctx context.Context, cfg DevelopmentConfig, src map[string]string, p CodeProposal, dir string) (string, error) {
 	if err := validateDevelopmentConfig(cfg); err != nil {
