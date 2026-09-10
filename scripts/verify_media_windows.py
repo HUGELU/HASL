@@ -1,15 +1,22 @@
 """Real Windows portable installation and neural generation through the new studio API."""
-import argparse,json,time,urllib.error,shutil,hashlib,struct
+import argparse,json,time,urllib.error,shutil,hashlib,struct,http.client
 from pathlib import Path
 from acceptance_app import App
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--binary',required=True);p.add_argument('--output',default='release/media-windows');a=p.parse_args();out=Path(a.output);out.mkdir(parents=True,exist_ok=True)
- report={'result':'failed','checks':[],'measurements':[],'scope':'Real Windows CPU execution. Small acceptance images test functionality, not image-quality superiority or all-device performance.'}
+ report={'result':'failed','checks':[],'measurements':[],'poll_recoveries':[],'scope':'Real Windows CPU execution. Small acceptance images test functionality, not image-quality superiority or all-device performance.'}
  def wait(label,read,done,failed,seconds):
-  start=time.monotonic();last=''
+  start=time.monotonic();last='';resets=0
   while time.monotonic()-start<seconds:
-   state=read();message=state.get('message',state.get('status',''));message+=(' · '+str(state.get('done',0))+'/'+str(state['total'])+' bytes') if state.get('total') else ''
+   try:state=read()
+   except (ConnectionResetError,http.client.IncompleteRead,http.client.RemoteDisconnected) as error:
+    resets+=1
+    if app.proc.poll() is not None or resets>3:raise
+    report['poll_recoveries'].append({'stage':label,'error':str(error),'attempt':resets})
+    print(label+': retrying read-only status after transient connection loss ('+str(resets)+'/3)',flush=True);time.sleep(1);continue
+   resets=0
+   message=state.get('message',state.get('status',''));message+=(' · '+str(state.get('done',0))+'/'+str(state['total'])+' bytes') if state.get('total') else ''
    if message!=last:print(label+': '+message,flush=True);last=message
    if failed(state):raise RuntimeError(label+': '+message)
    if done(state):return state,time.monotonic()-start
@@ -26,10 +33,6 @@ def main():
    try:
     report['app_version']=app.api('/api/state')['version']
     state=app.api('/api/studio/state',{});report['hardware']=state['hardware'];assert len(state['catalog'])==7
-    app.api('/api/images/setup',{'backend':'cpu','threads':4,'max_minutes':15})
-    wait('native setup',lambda:app.api('/api/images/state',{})['setup'],lambda s:s['status']=='ready',lambda s:s['status'] in ['failed','error','cancelled'],1200)
-    image(app,app.api('/api/studio/generate',{'model':'native-z-image','prompt':'Architectural photograph of a timber pavilion beside a lake in daylight','width':256,'height':256,'steps':2,'seed':0}),'native-studio')
-    report['checks'].append('New studio endpoint generated and saved a real native Z-Image-Turbo image')
     app.api('/api/studio/config',{**state['config'],'device':'cpu'})
     app.api('/api/studio/comfy-setup',{})
     wait('ComfyUI portable',lambda:app.api('/api/studio/state',{})['install'],lambda s:s['status']=='ready',lambda s:s['status'] in ['failed','error','cancelled'],1200)
@@ -45,9 +48,15 @@ def main():
     # ComfyUI refreshes its filename lists when object_info is requested.
     probe=app.api('/api/studio/comfy',{});loader=probe['loaders']['CheckpointLoaderSimple']['input']['required']['ckpt_name'][0];assert 'v1-5-pruned-emaonly.safetensors' in loader
     report['checks'].append('Pinned model downloaded to shared model folders and discovered by the running ComfyUI checkpoint loader')
+    app.api('/api/images/setup',{'backend':'cpu','threads':4,'max_minutes':15})
+    wait('native setup',lambda:app.api('/api/images/state',{})['setup'],lambda s:s['status']=='ready',lambda s:s['status'] in ['failed','error','cancelled'],1200)
+    image(app,app.api('/api/studio/generate',{'model':'native-z-image','prompt':'Architectural photograph of a timber pavilion beside a lake in daylight','width':256,'height':256,'steps':2,'seed':0}),'native-studio')
+    report['checks'].append('New studio endpoint generated and saved a real native Z-Image-Turbo image')
     result=image(app,app.api('/api/studio/generate',{'model':'sd15','prompt':'A sunlit timber pavilion in a garden, architectural photograph','width':256,'height':256,'steps':2,'guidance_scale':7,'seed':0}),'comfy-studio')
     image(app,app.api('/api/studio/generate',{'model':'sd15','prompt':'A sunlit timber pavilion in a garden with red flowers','width':256,'height':256,'steps':2,'guidance_scale':7,'seed':0,'init_asset':result['assets'][0]['id'],'strength':.6}),'comfy-reference')
     report['checks'].append('Real ComfyUI text-to-image and reference-image workflows executed through ORIGIN and saved their outputs and graphs')
+    diagnostic=app.logpath.read_text(errors='replace')
+    if any(marker in diagnostic for marker in ['http: panic serving','fatal error:','panic:']):raise RuntimeError('Application diagnostic log contains a panic; inspect launch.log')
     report['result']='passed'
    except BaseException:
     report['process_exit_code']=app.proc.poll()

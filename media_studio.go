@@ -198,7 +198,15 @@ func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/studio/ws", e.comfyLive)
 	sub, _ := fs.Sub(assets, "web/open-studio")
 	mux.Handle("/open-studio/", http.StripPrefix("/open-studio/", http.FileServer(http.FS(sub))))
-	mux.HandleFunc("/api/studio/state", func(w http.ResponseWriter, r *http.Request) { jsonReply(w, s.state()) })
+	mux.HandleFunc("/api/studio/state", func(w http.ResponseWriter, r *http.Request) {
+		// Consume the POST body before responding. Closing a Windows connection
+		// with unread request bytes can reset and truncate the JSON response.
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
+		jsonReply(w, s.state())
+	})
 	mux.HandleFunc("/api/studio/config", func(w http.ResponseWriter, r *http.Request) {
 		var q StudioConfig
 		if err := decode(r, &q); err != nil {
@@ -240,6 +248,10 @@ func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 		jsonReply(w, s.state())
 	})
 	mux.HandleFunc("/api/studio/stop-download", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		s.mu.Lock()
 		if s.installCancel != nil {
 			s.installCancel()
@@ -284,6 +296,10 @@ func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 		jsonReply(w, v)
 	})
 	mux.HandleFunc("/api/studio/comfy", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		v, err := s.comfyProbe(r.Context())
 		if err != nil {
 			apiError(w, err)
@@ -292,6 +308,10 @@ func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 		jsonReply(w, v)
 	})
 	mux.HandleFunc("/api/studio/comfy-setup", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		if err := s.setupComfy(); err != nil {
 			apiError(w, err)
 			return
@@ -299,6 +319,10 @@ func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 		jsonReply(w, s.state())
 	})
 	mux.HandleFunc("/api/studio/comfy-start", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		if err := s.startComfy(); err != nil {
 			apiError(w, err)
 			return

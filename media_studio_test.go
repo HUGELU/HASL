@@ -48,6 +48,20 @@ func TestStudioCatalogueAndRecipes(t *testing.T) {
 		}
 	}
 }
+
+func TestStudioControlBodiesValidatedBeforeSideEffects(t *testing.T) {
+	e := NewEngine(t.TempDir())
+	defer e.Stop()
+	for _, route := range []string{"state", "comfy", "comfy-setup", "comfy-start", "stop-download"} {
+		r := httptest.NewRequest("POST", "http://localhost/api/studio/"+route, strings.NewReader(`{"unexpected":true}`))
+		r.Header.Set("X-Origin-Key", e.sessionKey)
+		w := httptest.NewRecorder()
+		e.handler().ServeHTTP(w, r)
+		if w.Code != http.StatusBadRequest || !strings.Contains(w.Body.String(), "unknown field") {
+			t.Fatalf("%s did not validate its complete request before responding: %d %s", route, w.Code, w.Body.String())
+		}
+	}
+}
 func TestComfyWorkflowOutputAndErrorPersistence(t *testing.T) {
 	// This is an HTTP protocol fixture, not evidence of neural image quality.
 	var im bytes.Buffer
