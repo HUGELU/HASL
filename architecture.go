@@ -233,6 +233,10 @@ func (e *Engine) architectureRoutes(mux *http.ServeMux) {
 		jsonReply(w, a)
 	})
 	mux.HandleFunc("/api/architecture/project", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		b, err := os.ReadFile(filepath.Join(e.dataDir, "architecture.json"))
 		if err != nil {
 			jsonReply(w, ArchitectureProject{Name: "My property"})

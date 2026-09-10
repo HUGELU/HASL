@@ -474,6 +474,10 @@ func (s *Finishing) neural(ctx context.Context, j *FinishJob, src *image.NRGBA, 
 func (e *Engine) finishingRoutes(mux *http.ServeMux) {
 	s := e.finishing
 	mux.HandleFunc("/api/finish/state", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		_, ready := s.catalog.Runtimes[runtime.GOOS+"-"+runtime.GOARCH]

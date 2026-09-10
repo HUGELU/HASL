@@ -384,6 +384,10 @@ func codeHash(s string) string { sum := sha256.Sum256([]byte(s)); return hex.Enc
 func (e *Engine) developmentRoutes(mux *http.ServeMux) {
 	d := e.development
 	mux.HandleFunc("/api/development/state", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		d.mu.Lock()
 		defer d.mu.Unlock()
 		jsonReply(w, map[string]any{"config": d.config, "runs": d.runs, "busy": d.cancel != nil})
@@ -418,6 +422,10 @@ func (e *Engine) developmentRoutes(mux *http.ServeMux) {
 		jsonReply(w, j)
 	})
 	mux.HandleFunc("/api/development/cancel", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		d.mu.Lock()
 		if d.cancel != nil {
 			d.cancel()

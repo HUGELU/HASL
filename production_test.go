@@ -1,12 +1,16 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
+	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -236,5 +240,47 @@ func TestCandidateInRealDockerSandbox(t *testing.T) {
 	log, err := testCodeCandidate(ctx, DevelopmentConfig{Docker: docker, Image: imageID}, src, p, t.TempDir())
 	if err != nil {
 		t.Fatalf("Docker gate failed: %v\n%s", err, log)
+	}
+}
+
+// A closing HTTP client may send its body in a later packet. Replying before
+// reading it can reset the Windows TCP connection and lose the response.
+func TestProductionControlsConsumeRequestBeforeReply(t *testing.T) {
+	e := NewEngine(t.TempDir())
+	defer e.Stop()
+	server := httptest.NewServer(e.handler())
+	defer server.Close()
+	for _, path := range []string{"/api/finish/state", "/api/architecture/project", "/api/development/state", "/api/development/cancel"} {
+		t.Run(path, func(t *testing.T) {
+			conn, err := net.Dial("tcp", strings.TrimPrefix(server.URL, "http://"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer conn.Close()
+			_, err = fmt.Fprintf(conn, "POST %s HTTP/1.1\r\nHost: %s\r\nX-Origin-Key: %s\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnection: close\r\n\r\n", path, strings.TrimPrefix(server.URL, "http://"), e.sessionKey)
+			if err != nil {
+				t.Fatal(err)
+			}
+			reader := bufio.NewReader(conn)
+			_ = conn.SetReadDeadline(time.Now().Add(50 * time.Millisecond))
+			if _, err = reader.Peek(1); err == nil {
+				t.Fatal("responded before consuming POST body")
+			} else if n, ok := err.(net.Error); !ok || !n.Timeout() {
+				t.Fatal(err)
+			}
+			_ = conn.SetReadDeadline(time.Now().Add(3 * time.Second))
+			if _, err = io.WriteString(conn, "{}"); err != nil {
+				t.Fatal(err)
+			}
+			response, err := http.ReadResponse(reader, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer response.Body.Close()
+			body, err := io.ReadAll(response.Body)
+			if err != nil || response.StatusCode != 200 || !json.Valid(body) {
+				t.Fatalf("incomplete response: %d %v %q", response.StatusCode, err, body)
+			}
+		})
 	}
 }
