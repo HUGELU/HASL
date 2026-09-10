@@ -9,3 +9,7 @@ Actual current tests: Linux compile passed. First full Go race run reported one 
 Remaining steps: finish frontend browser validation and correct any controls/errors; add real ComfyUI adapter fixtures and Windows portable/native generation acceptance; run full retained regression suite; record screenshots/logs and exact results; build a new versioned Windows package; publish only after required tests pass; merge the reviewed branch without overwriting earlier releases.
 
 Known limits: local model licences differ; not a free proprietary Higgsfield/MuAPI service. Full video and multi-reference editing use installed ComfyUI workflows. Hardware estimates and configuration are not universal speed or quality guarantees.
+
+GitHub PR: https://github.com/HUGELU/HASL/pull/6. First saved integration commit 3aeab5ad1d6dd3167b3097ff0f5f7c61947fe625; acceptance candidate de4e0c6d9ac7b7396647b65d7bbbe6a45d3f36e0. Push run 34525513096; PR run 34525530004. Further validation fixes may follow these candidates; use branch head for continuation.
+
+First GitHub source acceptance identified a script-order regression: media_studio.js ran before the deferred host scripts, so renderPage was undefined. Fixed by deferring the integration script in the same order. Existing Concept Studio workflows themselves completed; validation correctly rejected the console errors.

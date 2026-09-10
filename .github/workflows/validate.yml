@@ -284,3 +284,39 @@ jobs:
             model_catalog.json
             upscale_manifest.json
           retention-days: 14
+
+  media_publish:
+    needs: [source, media_windows]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-media-studio' && contains(github.event.head_commit.message, '[media-release]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Package the exact tested Windows binary and this run's evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/package_media_release.py
+      - name: Publish a new version without overwriting earlier releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          test "$(gh api repos/$GH_REPO/git/ref/heads/origin0-media-studio --jq '.object.sha')" = "$GITHUB_SHA"
+          if gh release view v1.8.0 >/dev/null 2>&1; then echo 'Release already exists; no asset will be overwritten'; exit 1; fi
+          gh release create v1.8.0 --target "$GITHUB_SHA" --draft --prerelease --title 'ORIGIN-0 v1.8.0 — Open Studio, ComfyUI and local model library' --notes-file MEDIA_STUDIO.md
+          gh release upload v1.8.0 release/ORIGIN0.exe release/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.8.0.zip release/OPEN_STUDIO_SHA256SUMS.txt release/MEDIA_VALIDATION.json release/MEDIA_RECOVERY.md
+          gh release edit v1.8.0 --draft=false --prerelease
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: origin0-open-studio-release
+          path: |
+            release/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.8.0.zip
+            release/ORIGIN0.exe
+            release/OPEN_STUDIO_SHA256SUMS.txt
+            release/MEDIA_VALIDATION.json
+            release/MEDIA_RECOVERY.md
+          retention-days: 14

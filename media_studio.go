@@ -137,7 +137,14 @@ func (s *MediaStudio) state() any {
 	s.mu.Lock()
 	c := s.config
 	i := s.install
-	b, _ := json.Marshal(s.jobs)
+	// Polling never serialises the full workflow archive; graphs are retrieved on demand.
+	summaries := make([]ComfyJob, 0, len(s.jobs))
+	for _, job := range s.jobs {
+		copy := *job
+		copy.Graph = nil
+		summaries = append(summaries, copy)
+	}
+	b, _ := json.Marshal(summaries)
 	s.mu.Unlock()
 	var jobs any
 	_ = json.Unmarshal(b, &jobs)
@@ -240,6 +247,29 @@ func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 		s.mu.Unlock()
 		w.WriteHeader(204)
 	})
+	mux.HandleFunc("/api/studio/job", func(w http.ResponseWriter, r *http.Request) {
+		var q struct{ ID string }
+		if err := decode(r, &q); err != nil {
+			apiError(w, err)
+			return
+		}
+		s.mu.Lock()
+		var b []byte
+		for _, j := range s.jobs {
+			if j.ID == q.ID {
+				b, _ = json.Marshal(j)
+				break
+			}
+		}
+		s.mu.Unlock()
+		if b == nil {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(b)
+	})
+
 	mux.HandleFunc("/api/studio/generate", func(w http.ResponseWriter, r *http.Request) {
 		var q StudioRequest
 		if err := decode(r, &q); err != nil {

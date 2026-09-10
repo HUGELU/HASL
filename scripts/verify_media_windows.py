@@ -18,6 +18,7 @@ def main():
  def image(app,job,name):
   route='/api/images/state' if job['id'].startswith('img-') else '/api/studio/state'
   result,elapsed=wait(name,lambda:next(j for j in app.api(route,{})['jobs'] if j['id']==job['id']),lambda j:j['status']=='completed',lambda j:j['status'] not in ['queued','running','finishing','completed'],600)
+  if job['id'].startswith('comfy-'):result=app.api('/api/studio/job',{'id':job['id']})
   asset=result.get('asset') or result['assets'][0];b=app.api('/api/asset?id='+asset['id']);(out/(name+'.png')).write_bytes(b);assert b.startswith(b'\x89PNG');width,height=struct.unpack('>II',b[16:24]);assert width==256 and height==256
   (out/(name+'-parameters.json')).write_text(json.dumps(result,indent=2));report['measurements'].append({'task':name,'seconds':round(elapsed,2),'width':width,'height':height,'sha256':hashlib.sha256(b).hexdigest()});return result
  try:

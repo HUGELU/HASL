@@ -1,3 +1,33 @@
+# ORIGIN-0 / AUTO-KI · Open Creative Studio
+
+The creative workspace embeds adapted **Autom8AI/Open-Higgsfield-AI** image,
+reference-input and cinema components and connects them to local generation.
+Use **Models & engines** for seven pinned model packs, verified resumable downloads,
+and the official **ComfyUI portable** engine. Use **White label** for your studio
+name, colour, tagline and logo. The full ComfyUI workflow editor is available for
+advanced image, video, audio and other installed workflows.
+
+Start with the native Z-Image-Turbo Q4 pack on a 32 GB laptop. SDXL, SDXL Turbo,
+FLUX.1 schnell, FLUX.2 klein 4B and Qwen-Image 2512 are separate downloadable packs
+with different requirements and licences. No model weights are concealed in a
+small executable, and no hosted commercial model is advertised as free local code.
+
+The Windows application itself needs no Python installation. The optional ComfyUI
+portable contains its own runtime. Existing ComfyUI installs can be connected on
+localhost; use an authorised localhost tunnel for a remote workstation.
+
+See [MEDIA_STUDIO.md](MEDIA_STUDIO.md) for setup, provenance and scope and
+[RECOVERY_MEDIA_STUDIO.md](RECOVERY_MEDIA_STUDIO.md) for the saved checkpoint.
+The previous release remains available until this integration passes Windows
+acceptance and receives its own versioned download.
+
+Common Vision, its five linked document views and human review boundaries,
+production/architectural tools, local learning, saved branches, privacy PIN and
+worker-PC features remain available in the workspace tabs. Original 12 + 1 values
+are still awaiting their source material; generated replacements are not invented.
+
+---
+
 # ORIGIN-0 / AUTO-KI — Common Vision prototype
 
 The central mission is a participatory Common Vision for Humanity linked to values,
