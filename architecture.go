@@ -66,7 +66,9 @@ func validateArchitecture(p ArchitectureProject) error {
 		}
 		for j := 0; j < i; j++ {
 			b := p.Rooms[j]
-			if r.Name == b.Name { return errors.New("use distinct room names so reference views can identify their room") }
+			if r.Name == b.Name {
+				return errors.New("use distinct room names so reference views can identify their room")
+			}
 			if math.Min(r.X+r.W, b.X+b.W)-math.Max(r.X, b.X) > 1e-6 && math.Min(r.Y+r.H, b.Y+b.H)-math.Max(r.Y, b.Y) > 1e-6 {
 				return fmt.Errorf("rooms %s and %s overlap", r.Name, b.Name)
 			}
@@ -78,8 +80,14 @@ func validateArchitecture(p ArchitectureProject) error {
 		}
 		if v.Room != "" {
 			found := false
-			for _, r := range p.Rooms { if r.Name == v.Room { found = true } }
-			if !found { return errors.New("a view refers to a room missing from this project") }
+			for _, r := range p.Rooms {
+				if r.Name == v.Room {
+					found = true
+				}
+			}
+			if !found {
+				return errors.New("a view refers to a room missing from this project")
+			}
 		}
 	}
 	return nil
@@ -101,6 +109,9 @@ func planSVG(p ArchitectureProject) (string, float64, error) {
 	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1.8 %.3f %.3f" width="1200" role="img"><title>%s</title><rect x="-1" y="-1.8" width="100%%" height="100%%" fill="white"/><g fill="#111" font-family="Arial,sans-serif"><text x="0" y="-1" font-size=".38">%s</text><text x="0" y="-.55" font-size=".2">User-entered dimensions · metres · schematic plan</text>`, w+2, h+3.1, html.EscapeString(p.Name), html.EscapeString(p.Name))
 	for _, r := range p.Rooms {
 		fmt.Fprintf(&b, `<rect x="%.3f" y="%.3f" width="%.3f" height="%.3f" fill="#f7f7f5" stroke="#111" stroke-width=".05"/><text x="%.3f" y="%.3f" text-anchor="middle" font-size=".23">%s</text><text x="%.3f" y="%.3f" text-anchor="middle" font-size=".18">%.2f × %.2f m · %.2f m²</text>`, r.X, r.Y, r.W, r.H, r.X+r.W/2, r.Y+r.H/2-.12, html.EscapeString(r.Name), r.X+r.W/2, r.Y+r.H/2+.16, r.W, r.H, r.W*r.H)
+	}
+	// Draw door openings after all room boundaries, including a shared wall.
+	for _, r := range p.Rooms {
 		if r.Door != "" {
 			x, y, angle := r.X+r.DoorOffset, r.Y, 0
 			if r.Door == "bottom" {
@@ -173,7 +184,9 @@ func (e *Engine) walkthroughHTML(ctx context.Context, p ArchitectureProject) (st
 			return "", errors.New("walkthrough exceeds 48 MiB of embedded images")
 		}
 		label := v.Label
-		if v.Room != "" { label = v.Room + " · " + label }
+		if v.Room != "" {
+			label = v.Room + " · " + label
+		}
 		frames = append(frames, frame{"data:image/png;base64," + base64.StdEncoding.EncodeToString(buf.Bytes()), label, v.Seconds})
 	}
 	data, _ := json.Marshal(frames)
@@ -190,16 +203,33 @@ async function start(record){if(running)return;await Promise.all(images.map(i=>i
 function stop(){running=false;cancelAnimationFrame(raf);if(rec?.state==='recording')rec.stop();else status.textContent='Stopped.'}document.getElementById('play').onclick=()=>start(false).catch(e=>status.textContent=e.message);document.getElementById('record').onclick=()=>start(true).catch(e=>status.textContent=e.message);document.getElementById('stop').onclick=stop;document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){stop();status.textContent='Stopped because the tab became hidden. Export may be partial.'}});Promise.all(images.map(i=>i.decode())).then(()=>draw(0));
 `
 
-func walkthroughScriptHash() string { sum := sha256.Sum256([]byte(walkthroughScript)); return base64.StdEncoding.EncodeToString(sum[:]) }
+func walkthroughScriptHash() string {
+	sum := sha256.Sum256([]byte(walkthroughScript))
+	return base64.StdEncoding.EncodeToString(sum[:])
+}
 
 func (e *Engine) architectureRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/architecture/save", func(w http.ResponseWriter, r *http.Request) {
 		var p ArchitectureProject
-		if err := decode(r, &p); err != nil { apiError(w, err); return }
-		if err := validateArchitecture(p); err != nil { apiError(w, err); return }
-		for _, v := range p.Views { if _, err := e.objectPath(v.Asset); err != nil { apiError(w, err); return } }
+		if err := decode(r, &p); err != nil {
+			apiError(w, err)
+			return
+		}
+		if err := validateArchitecture(p); err != nil {
+			apiError(w, err)
+			return
+		}
+		for _, v := range p.Views {
+			if _, err := e.objectPath(v.Asset); err != nil {
+				apiError(w, err)
+				return
+			}
+		}
 		a, err := e.architectureRecipe(p)
-		if err != nil { apiError(w, err); return }
+		if err != nil {
+			apiError(w, err)
+			return
+		}
 		jsonReply(w, a)
 	})
 	mux.HandleFunc("/api/architecture/project", func(w http.ResponseWriter, r *http.Request) {
