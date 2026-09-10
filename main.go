@@ -1331,7 +1331,7 @@ func (e *Engine) consoleLoop() {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	fmt.Println("============================================================")
-	fmt.Println("ORIGIN-0 STANDALONE v1.6 - LIVE COGNITIVE ENGINE")
+	fmt.Println("ORIGIN-0 v1.7.0 - LOCAL PRODUCTION AND RESEARCH")
 	fmt.Println("No Python. No pip. No external runtime.")
 	fmt.Println("============================================================")
 	for {
