@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +26,17 @@ for folder in ['browser-acceptance', 'production-browser', 'production-acceptanc
     report = json.loads((dest / 'release' / folder / 'report.json').read_text())
     if report.get('result') != 'passed':
         raise SystemExit('Source acceptance report is incomplete: ' + folder)
+if '--common-vision' in sys.argv:
+    for folder in ['common-vision-api', 'common-vision-browser']:
+        report = json.loads((dest / 'release' / folder / 'report.json').read_text())
+        if report.get('result') != 'passed':
+            raise SystemExit('Common Vision acceptance failed: ' + folder)
+    (dest / 'evidence-source.json').write_text(json.dumps({
+        'repository': repo, 'run': run, 'commit': os.environ['GITHUB_SHA'],
+        'artifact_id': artifact['id'], 'artifact_sha256': artifact['digest']
+    }, indent=2))
+    print('Collected this run\'s passed Common Vision and existing browser evidence')
+    raise SystemExit(0)
 manifest = json.loads((ROOT / 'upscale_manifest.json').read_text())
 linux = json.loads((dest / 'upscale_manifest.json').read_text())
 spec = linux['runtimes']['linux-amd64']

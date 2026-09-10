@@ -1,3 +1,14 @@
+# ORIGIN-0 / AUTO-KI — Common Vision prototype
+
+The central mission is a participatory Common Vision for Humanity linked to values,
+living documents, institutional proposals, human review and measured outcomes.
+Existing image, property, research and coding tools remain supporting capabilities.
+
+[Common Vision guide](COMMON_VISION.md) · [Recovery checkpoint](RECOVERY_CHECKPOINT_20260910.md)
+
+The original 12 + 1 wording and source documents are pending. This prototype does
+not establish public consensus, verified identities or political authority.
+
 # ORIGIN-0 — local generation, production and a learning workbench
 
 ORIGIN-0 runs an open image model on your own computer and makes generation,

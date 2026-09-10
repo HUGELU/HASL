@@ -53,6 +53,7 @@ type JobRequest struct {
 }
 
 var rebuildFiles = []string{
+	"common_vision.go", "common_vision_test.go", "web/common_vision.js", "web/common_vision.css", "COMMON_VISION.md",
 	"scripts/prepare_upscaler.py", "native/upscale/builds.json",
 	"PRODUCTION_STUDIO.md",
 	"INTEGRATION_REVIEW.md",

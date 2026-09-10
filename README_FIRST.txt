@@ -1,3 +1,17 @@
+ORIGIN-0 v1.7.1 — COMMON VISION PROTOTYPE
+
+Extract the package, then double-click ORIGIN0.exe.
+Common Vision needs no Python, GPU or model download.
+Click Load labelled demonstration to try contributions, human review, a proposal,
+simulated outcome feedback and a follow-up proposal. Read COMMON_VISION.md.
+Exact original 12 + 1 sources are pending. Demonstrations are not public agreement.
+For recovery, export Common Vision JSON or copy the whole origin0_data folder.
+
+Existing image generation and Production tools remain available.
+Image generation needs its separate first-run model download; neural finishing
+is bundled. The v1.7 Windows media acceptance evidence remains at
+https://github.com/HUGELU/HASL/releases/tag/v1.7.0
+
 ORIGIN-0 v1.7.0 — LOCAL IMAGE STUDIO
 
 WINDOWS FIRST RUN
