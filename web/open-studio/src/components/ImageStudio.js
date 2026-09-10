@@ -9,6 +9,8 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
 
+function createInlineInstructions(){const p=document.createElement('p');p.className='text-xs text-secondary text-center mt-4';p.textContent='Choose a model in Models & engines. Add a reference or use Advanced for precise settings. Saved outputs appear in Gallery & queue.';return p}
+
 export function ImageStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
@@ -96,8 +98,11 @@ export function ImageStudio() {
             uploadedImageUrls = urls || [url];
             if (!imageMode) {
                 imageMode = true;
-                selectedModel = i2iModels[0].id;
-                selectedModelName = i2iModels[0].name;
+                const refModel=i2iModels.find(m=>m.id===selectedModel)||i2iModels[0];
+                selectedModel = refModel.id;
+                selectedModelName = refModel.name;
+                guidanceScale=refModel.guidance;steps=refModel.steps;
+                guidanceSlider.value=guidanceScale;guidanceValue.textContent=guidanceScale;stepsSlider.value=steps;stepsValue.textContent=steps;modelControls();
                 selectedAr = getAspectRatiosForI2IModel(selectedModel)[0];
                 document.getElementById('model-btn-label').textContent = selectedModelName;
                 document.getElementById('ar-btn-label').textContent = selectedAr;

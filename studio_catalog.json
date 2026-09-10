@@ -67,7 +67,7 @@
     "engine": "comfy",
     "recipe": "checkpoint",
     "description": "Fast 1\u20134 step 512 px drafts. Has a separate Stability licence; review its terms before commercial use.",
-    "license": "other",
+    "license": "Stability AI licence — see model card",
     "source": "https://huggingface.co/stabilityai/sdxl-turbo",
     "ram_gb": 16,
     "width": 512,
@@ -80,7 +80,7 @@
         "url": "https://huggingface.co/stabilityai/sdxl-turbo/resolve/71153311d3dbb46851df1931d3ca6e939de83304/sd_xl_turbo_1.0_fp16.safetensors",
         "sha256": "e869ac7d6942cb327d68d5ed83a40447aadf20e0c3358d98b2cc9e270db0da26",
         "size": 6938081905,
-        "license": "other",
+        "license": "Stability AI licence — see model card",
         "source": "https://huggingface.co/stabilityai/sdxl-turbo/blob/71153311d3dbb46851df1931d3ca6e939de83304/README.md"
       }
     ]

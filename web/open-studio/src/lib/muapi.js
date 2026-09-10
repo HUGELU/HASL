@@ -23,7 +23,7 @@ export class MuapiClient{
   let init='';if(refs[0]){if(!refs[0].startsWith('origin-asset:'))throw new Error('Upload this reference to the local workspace again');init=refs[0].slice(13)}
   const request={model:p.model,prompt:p.prompt||'',negative_prompt:p.negative_prompt||'',width,height,steps:p.steps??m.steps,guidance_scale:p.guidance_scale??m.guidance,seed:p.seed??-1,init_asset:init,strength:p.strength??.5,lora:p.lora||'',lora_weight:p.lora_weight??1};
   const count=Math.min(8,Math.max(1,p.batch_count||1));let first;
-  for(let i=0;i<count;i++){const j=await localAPI('/api/studio/generate',{...request,seed:request.seed===-1?-1:request.seed+i});if(!first)first=j;if(j.id.startsWith('comfy-'))watchComfy(j.id);if(p.onRequestId)p.onRequestId(j.id)}
+  for(let i=0;i<count;i++){const j=await localAPI('/api/studio/generate',{...request,seed:request.seed===-1?-1:request.seed+i});if(!first){first=j;if(p.onRequestId)p.onRequestId(j.id)}if(j.id.startsWith('comfy-'))watchComfy(j.id)}
   return this.pollForResult(first.id);
  }
  generateI2I(p){return this.generateImage(p)}

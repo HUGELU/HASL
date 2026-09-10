@@ -300,6 +300,8 @@ func (s *MediaStudio) runComfy(ctx context.Context, j *ComfyJob, cancel context.
 		fail(ctx.Err())
 		return
 	}
+	s.e.imageBusy.Store(true)
+	defer s.e.imageBusy.Store(false)
 	var submit struct {
 		PromptID   string `json:"prompt_id"`
 		Error      any    `json:"error"`
