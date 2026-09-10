@@ -1427,7 +1427,7 @@ func (e *Engine) view() StateView {
 	if len(refs) > 20 {
 		refs = refs[len(refs)-20:]
 	}
-	health := map[string]any{"status": "running", "state_dir": e.dataDir, "drop_dir": e.dropDir, "bounded_working_memory": true, "network_access": false, "self_replace_executable": false, "source_reflection": true, "internal_clone_swarms": len(e.swarms)}
+	health := map[string]any{"status": "running", "state_dir": e.dataDir, "drop_dir": e.dropDir, "bounded_working_memory": true, "network_access": "explicit setup, provider actions and worker invitations", "self_replace_executable": false, "source_reflection": true, "internal_clone_swarms": len(e.swarms)}
 	uiCandidates := []UIGenome{}
 	for _, g := range e.uiCandidates {
 		uiCandidates = append(uiCandidates, cloneUI(g))
@@ -1443,7 +1443,7 @@ func (e *Engine) view() StateView {
 	labSummary := e.lab
 	labSummary.Learning = LearningState{}
 	labSummary.Jobs = nil
-	return StateView{Lab: cloneLab(labSummary), Version: "1.5-grounded", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
+	return StateView{Lab: cloneLab(labSummary), Version: "1.5-native-images", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
 }
 
 func (e *Engine) requestApproval(kind, request, why string) {

@@ -1,54 +1,26 @@
-# ORIGIN-0 v1.5 source
+# Building ORIGIN-0 v1.5
 
-Go standard library only. The release includes an embedded browser interface;
-users do not need a separate language runtime to execute the binary.
+See README.md for capabilities and limits. Go 1.23+ builds the native host;
+Python 3 runs the build helper and validation scripts only. End users do not
+need Python for the default image studio.
 
-Build with a Go toolchain compatible with go.mod:
+`python3 build.py --target windows` builds Windows x64.
+`python3 build.py --target linux` builds Linux x64.
+`--arch arm64 --target darwin` builds an Apple silicon host, but this release
+has not completed a Mac validation gate. A Windows binary is not an Android app.
 
-```sh
-python3 build.py --target windows
-python3 build.py --target linux
-```
+Before building, the helper embeds an exact source snapshot and JSON bundle.
+A release can place verified native runtime ZIPs in bundled/. Runtime binaries
+are not in Git; model_catalog.json pins the downloads. scripts/build_native_windows.ps1
+builds the pinned backend on Windows with its C++ runtime linked statically, then
+checks PE imports before packaging. It intentionally leaves the import gate intact.
 
-The helper regenerates source_snapshot.txt from the exact application source,
-also embeds source_bundle.json for reproducible local reconstruction,
-sets CGO_ENABLED=0, and writes the native output to release/. Python is required
-only for this build helper. A supplied Windows executable runs independently.
-Use --go /absolute/path/to/go to select a toolchain.
+Run `go test -race ./...`, `go vet ./...` and JavaScript syntax checks. The real
+image integration gate is scripts/verify_image_runtime.py; it downloads and
+verifies actual weights, starts the app, completes native inference and fetches
+the persisted PNG. Fixture-based unit tests are labelled separately.
 
-Validation used Go 1.27.1 on Linux x64:
-
-```sh
-go test -race -count=1 -v ./...
-go vet ./...
-node --check web/app.js
-python3 scripts/verify_runtime.py
-```
-
-The runtime verifier uses the matching local release binary. It creates only
-synthetic local test data and makes no external provider request. Adapter tests
-use an HTTP stub; they do not demonstrate successful access to a paid model.
-
-Core files:
-- main.go: bounded ingestion, graph operations, descendant memories, startup.
-- laboratory.go: layouts, measurements, archives, local API and exports.
-- media.go: explicit model adapters and manual ChatGPT handoff.
-- learning.go: labels, group-preserving splits, candidate evaluation and rollback.
-- evolution_jobs.go: local worker jobs, cancellation and tested source rebuilding.
-- adaptive_kernel.go: the restricted generated numeric source target.
-- worker/local_models.py: SDXL inference/LoRA training and CogVideoX video.
-- web/: embedded application UI, styles, candidate-template measurements.
-- *_test.go: regression and concurrency coverage.
-
-Model endpoint references checked on 2026-09-08:
-- https://developers.openai.com/api/docs/guides/text
-- https://developers.openai.com/api/docs/guides/image-generation
-- https://developers.openai.com/api/docs/guides/speech-to-text
-
-Source snapshot text is input material, not an executable instruction channel.
-Runnable branch export archives this host binary and state. It does not compile
-or install a source modification. See README_FIRST.txt for operational limits.
-
-Local model execution requirements and its unvalidated GPU integration boundary
-are documented in LOCAL_MODELS.md. Source rebuilding in Learning & upgrades is
-separate from the ordinary runnable-branch export.
+The source bundle and rebuildFiles list must remain consistent. An experimental
+recognition improvement may rebuild the small numeric distance kernel through
+an explicitly configured Go compiler. That produces an archive, not silent
+replacement of the active executable or training of the Z-Image model.

@@ -559,7 +559,13 @@ func (p *ComputePool) runPeer(parent context.Context, c *http.Client, v PoolInvi
 	return err
 }
 func (p *ComputePool) routes(mux *http.ServeMux) {
-	mux.HandleFunc("/api/pool/state", func(w http.ResponseWriter, r *http.Request) { jsonReply(w, p.status()) })
+	mux.HandleFunc("/api/pool/state", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
+		jsonReply(w, p.status())
+	})
 	mux.HandleFunc("/api/pool/action", func(w http.ResponseWriter, r *http.Request) {
 		var v struct {
 			Action    string `json:"action"`

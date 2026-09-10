@@ -301,7 +301,7 @@ func nativeCommand(ctx context.Context, cli string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(ctx, cli, args...)
 	prepareNativeCommand(cmd)
 	cmd.Dir = filepath.Dir(cli)
-	cmd.Env = append(os.Environ(), "LD_LIBRARY_PATH="+filepath.Dir(cli), "GGML_BACKEND_PATH="+filepath.Dir(cli))
+	cmd.Env = append(os.Environ(), "LD_LIBRARY_PATH="+filepath.Dir(cli))
 	cmd.WaitDelay = 5 * time.Second
 	return cmd
 }
@@ -326,6 +326,14 @@ func validateImageRequest(r ImageRequest) error {
 func (s *NativeImages) submit(r ImageRequest) (ImageJob, error) {
 	if err := validateImageRequest(r); err != nil {
 		return ImageJob{}, err
+	}
+	if r.Shared {
+		s.pool.mu.Lock()
+		hosting := s.pool.server != nil
+		s.pool.mu.Unlock()
+		if !hosting {
+			return ImageJob{}, errors.New("start a worker group before submitting shared jobs")
+		}
 	}
 	s.mu.Lock()
 	if s.closed {
@@ -527,7 +535,13 @@ func (s *NativeImages) cancelJob(id string) error {
 
 func (e *Engine) nativeImageRoutes(mux *http.ServeMux) {
 	s := e.images
-	mux.HandleFunc("/api/images/state", func(w http.ResponseWriter, r *http.Request) { jsonReply(w, s.status()) })
+	mux.HandleFunc("/api/images/state", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
+		jsonReply(w, s.status())
+	})
 	mux.HandleFunc("/api/images/setup", func(w http.ResponseWriter, r *http.Request) {
 		var cfg ImageConfig
 		if err := decode(r, &cfg); err != nil {
@@ -569,6 +583,10 @@ func (e *Engine) nativeImageRoutes(mux *http.ServeMux) {
 		w.WriteHeader(204)
 	})
 	mux.HandleFunc("/api/images/diagnostics", func(w http.ResponseWriter, r *http.Request) {
+		if err := decode(r, &struct{}{}); err != nil {
+			apiError(w, err)
+			return
+		}
 		w.Header().Set("Content-Disposition", "attachment; filename=ORIGIN0_DIAGNOSTICS.json")
 		// Deliberately excludes prompts, images, peer credentials and session keys.
 		s.mu.Lock()

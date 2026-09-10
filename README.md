@@ -5,9 +5,13 @@ The immediate goal is reliable image generation on ordinary computers, with
 visible setup, useful diagnostics, and a way for explicitly joined PCs to
 share independent image jobs.
 
-**Status: release candidate undergoing Windows validation.** The native backend
-has generated a real 512 × 512 image on Linux CPU. No claim of universal device
-support or autonomous general intelligence is made.
+**Windows preview v1.5 is available.** The packaged app passed actual Windows CPU
+startup, model setup, generation and PNG-download checks. A separate Linux CPU
+run produced a visually checked 512 × 512 image.
+
+[Download the Windows ZIP](https://github.com/HUGELU/HASL/releases/download/v1.5.0/ORIGIN0_WINDOWS_v1.5.zip) ·
+[Download ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.5.0/ORIGIN0.exe) ·
+[Release and checksums](https://github.com/HUGELU/HASL/releases/tag/v1.5.0)
 
 ## Image generation
 
@@ -27,8 +31,13 @@ requirements, hardware costs, electricity and connectivity still apply.
 
 ## Run
 
-Windows release builds are being validated. Do not use the old Python launchers.
-The source can be built using Go 1.23+ and the `build.py` helper:
+Download the ZIP above, extract it into a new folder, and double-click
+**ORIGIN0.exe**. The tested CPU runtime is inside the executable. Choose **CPU**
+for the tested configuration. This release targets modern Windows x64 PCs with
+AVX2; Android, iOS, Windows ARM and individual GPU drivers are not covered by this
+release test.
+
+Developers can build the source using Go 1.23+ and the `build.py` helper:
 
 ```sh
 python3 build.py --target linux
@@ -77,5 +86,5 @@ reviewed as normal source changes; it is not executed through the worker protoco
 See [CONTRIBUTING.md](CONTRIBUTING.md), [validation](VALIDATION_V15.md), and
 [model provenance](third_party/NOTICES.md). Useful work includes clean Windows
 startup, Intel GPU performance, accessible interfaces, reproducible image quality
-benchmarks, and better distributed scheduling. Human and AI-assisted contributions
+benchmarks, and better distributed scheduling. Join the [hardware testing issue](https://github.com/HUGELU/HASL/issues/2). Human and AI-assisted contributions
 use the same pull-request checks.

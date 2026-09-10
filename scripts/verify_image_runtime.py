@@ -107,6 +107,15 @@ def main():
         report = {'result': 'passed', 'real_diffusion': True, 'version': state['version'], 'platform': current['platform'], 'model_pack': catalog['id'], 'image': {'width': 256, 'height': 256, 'steps': 1, 'seed': 42, 'sha256': hashlib.sha256(image).hexdigest()}, 'elapsed_seconds': round(time.monotonic() - start, 2), 'devices': current['setup']['devices'], 'checks': ['native app startup', 'authenticated API', 'pinned model setup', 'native process execution', 'job completed', 'PNG persisted and downloaded']}
         (output / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
         print(json.dumps(report), flush=True)
+    except Exception:
+        print('Application process exit status:', proc.poll(), flush=True)
+        launch_text = logpath.read_text(errors='replace')
+        launch_text = re.sub(r'(http://127\.0\.0\.1:\d+)/#[a-f0-9]+', r'\1/#[redacted]', launch_text)
+        if key:
+            launch_text = launch_text.replace(key, '[redacted]')
+        (output / 'launch.log').write_text(launch_text, encoding='utf-8')
+        print(launch_text[-16000:], flush=True)
+        raise
     finally:
         if base and proc.poll() is None:
             try:

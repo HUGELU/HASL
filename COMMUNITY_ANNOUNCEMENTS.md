@@ -1,7 +1,7 @@
 # Contributor announcements — drafts
 
-Publish these after the Windows validation report is complete. Posting remains
-manual until an authenticated publishing account is connected. Follow each
+The Windows release passed real generation and is available. These drafts remain
+unposted; publishing requires a connected account for the target platform. Follow each
 community's rules and avoid repeated or unsolicited promotional posts.
 
 ## Reddit / open-source image communities
@@ -10,8 +10,8 @@ Title: ORIGIN-0: an open-source local image studio with opt-in worker PCs
 
 I am building ORIGIN-0 to make local image generation easier to start and debug.
 It uses stable-diffusion.cpp and an Apache-2.0 Z-Image-Turbo model pack, with visible
-downloads, checksum verification, CPU fallback, a queue and PNG results. The first
-real Linux CPU example is documented, including its roughly eight-minute time.
+downloads, checksum verification, CPU fallback, a queue and PNG results. The Windows package passed a real app-to-model-to-PNG test. A Linux CPU example
+is also documented, including its roughly eight-minute time.
 
 An experimental worker group lets explicitly joined PCs pull complete image jobs.
 It does not pool VRAM or promise free unlimited compute. The source and validation

@@ -57,12 +57,12 @@
       "source": "https://github.com/leejet/stable-diffusion.cpp/tree/d04e8950c1ec8d30248cbe996682b3182fb1adf6"
     },
     "windows-amd64-cpu": {
-      "name": "sd-master-d04e895-bin-win-cpu-x64.zip",
-      "size": 24112084,
-      "sha256": "731208e2cde69fcf2e69e6968d30a570d47f2629d5682f51b699b60f47019abf",
-      "url": "https://github.com/leejet/stable-diffusion.cpp/releases/download/master-849-d04e895/sd-master-d04e895-bin-win-cpu-x64.zip",
+      "name": "origin0-sd-d04e895-windows-amd64-cpu.zip",
+      "size": 23465025,
+      "sha256": "bfe7ee8b0d80cb9d704bf25f3d5a267ad2faeb2a32fc1757e44a0bf57a0ae627",
+      "url": "https://github.com/HUGELU/HASL/releases/download/v1.5.0/origin0-sd-d04e895-windows-amd64-cpu.zip",
       "license": "MIT",
-      "source": "https://github.com/leejet/stable-diffusion.cpp/tree/d04e8950c1ec8d30248cbe996682b3182fb1adf6"
+      "source": "https://github.com/HUGELU/HASL/blob/main/scripts/build_native_windows.ps1"
     },
     "windows-amd64-vulkan": {
       "name": "sd-master-d04e895-bin-win-vulkan-x64.zip",

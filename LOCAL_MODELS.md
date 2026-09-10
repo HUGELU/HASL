@@ -1,8 +1,15 @@
 # ORIGIN-0 v1.5: local models and rebuilding
 
-The Windows app, graph exploration, UI laboratory, snapshots and small taught recognizer run without installing anything else. The bundled model worker adds SDXL images, SDXL LoRA weight training and CogVideoX video generation once a compatible local runtime and model files are available. Model weights and GPU drivers are not inside ORIGIN0.exe.
+For the tested native image generator, use **Image studio → Set up image engine**.
+That path bundles stable-diffusion.cpp, downloads a verified Z-Image-Turbo model
+pack, and needs no Python, paid API or separate compiler. See README_FIRST.txt.
 
-For the quickest image-generation test, use **Voice & creation** with the existing optional provider connection. A provider-generated image does not train that provider's model.
+The instructions below cover the **separate optional SDXL/LoRA/video workbench**.
+Those optional workers require their own Python environment and model folders.
+Their contract tests pass; GPU training and video rendering have not been
+validated in this release. They do not automatically retrain the native Z-Image
+model. The graph exploration, UI laboratory, snapshots and small taught recognizer
+also run in the host independently of those optional workers.
 
 ## Local model setup on Windows
 
@@ -31,7 +38,7 @@ For the quickest image-generation test, use **Voice & creation** with the existi
 
    ORIGIN-0 itself loads only the local directory. A single checkpoint file or a model repository name is not enough. Prefer safetensors; the worker requests that format. Downloading both full and alternate precision variants can consume extra disk space.
 6. Open **Learning & upgrades → Connect local models and a compiler**. Enter your environment's full python.exe path and model-folder paths. Save the setup, then select **Run diagnostics**. Inspect **Show log** and result.json. The tensor probe runs an actual matrix multiplication on the device PyTorch selects. Missing packages and unavailable GPUs are reported.
-7. Try **Generate local image** first. The worker uses a 512 × 512 comparison size. LoRA training and this CogVideoX implementation require a functioning CUDA GPU. Image inference has a CPU fallback, which can be slow. GPU memory exhaustion leaves the prior active adapter unchanged; the job records the error. No GPU training or actual image/video rendering was validated in the release environment, which has no PyTorch/model weights.
+7. Try **Generate local image** first. The worker uses a 512 × 512 comparison size. LoRA training and this CogVideoX implementation require a functioning CUDA GPU. Image inference has a CPU fallback, which can be slow. GPU memory exhaustion leaves the prior active adapter unchanged; the job records the error. No actual SDXL/LoRA or CogVideoX GPU run was validated for this optional worker. The native Z-Image path has its own real CPU image validation.
 
 ## Teach, train, compare
 
