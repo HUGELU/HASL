@@ -1117,7 +1117,7 @@ func (e *Engine) exportBundle(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = add("origin0_data/state.json", bytes.NewReader(b))
 	_ = add("SOURCE_SNAPSHOT.txt", strings.NewReader(e.sourceSnapshot))
-	_ = add("READ_FIRST.txt", strings.NewReader("ORIGIN-0 v1.6 saved branch\nRun the included program from an extracted folder.\nThis contains the current executable and bounded working state.\nLarge raw objects, previous snapshots, credentials and grants are excluded.\nFull recovery requires a separate copy of your original origin0_data folder.\nThis export preserves the same executable; it is not a newly compiled intelligence.\n"))
+	_ = add("READ_FIRST.txt", strings.NewReader("ORIGIN-0 v1.6.1 saved branch\nRun the included program from an extracted folder.\nThis contains the current executable and bounded working state.\nLarge raw objects, previous snapshots, credentials and grants are excluded.\nFull recovery requires a separate copy of your original origin0_data folder.\nThis export preserves the same executable; it is not a newly compiled intelligence.\n"))
 }
 
 func (e *Engine) acquireInstance() (func(), bool) {

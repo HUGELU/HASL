@@ -15,7 +15,7 @@ if hashlib.sha256(revision.read_bytes()).hexdigest() != report.get('revision', {
 image = release / 'windows-acceptance/image.png'
 if hashlib.sha256(image.read_bytes()).hexdigest() != report['image']['sha256']:
     raise SystemExit('Validation image checksum mismatch')
-archive = release / 'ORIGIN0_WINDOWS_v1.6.zip'
+archive = release / 'ORIGIN0_WINDOWS_v1.6.1.zip'
 files = {
     'ORIGIN0.exe': release / 'ORIGIN0.exe',
     'README_FIRST.txt': ROOT / 'README_FIRST.txt',

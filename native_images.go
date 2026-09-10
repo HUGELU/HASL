@@ -636,7 +636,7 @@ func (e *Engine) nativeImageRoutes(mux *http.ServeMux) {
 		w.Header().Set("Content-Disposition", "attachment; filename=ORIGIN0_DIAGNOSTICS.json")
 		// Deliberately excludes prompts, images, peer credentials and session keys.
 		s.mu.Lock()
-		v := map[string]any{"version": "1.6", "os": runtime.GOOS, "arch": runtime.GOARCH, "cpus": runtime.NumCPU(), "config": s.config, "setup": s.setup, "ready": s.ready, "catalog": s.catalog.ID, "folder": s.root(), "actual_backend": s.actualBackend}
+		v := map[string]any{"version": "1.6.1", "os": runtime.GOOS, "arch": runtime.GOARCH, "cpus": runtime.NumCPU(), "config": s.config, "setup": s.setup, "ready": s.ready, "catalog": s.catalog.ID, "folder": s.root(), "actual_backend": s.actualBackend}
 		s.mu.Unlock()
 		jsonReply(w, v)
 	})

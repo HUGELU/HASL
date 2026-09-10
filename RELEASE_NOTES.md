@@ -1,6 +1,6 @@
-ORIGIN-0 v1.6 adds Concept Studio, an encrypted internet relay and practical generation controls while retaining the native image generator and previous research workspace.
+ORIGIN-0 v1.6.1 adds Concept Studio, an encrypted internet relay and practical generation controls while retaining the native image generator and previous research workspace.
 
-**Extract `ORIGIN0_WINDOWS_v1.6.zip` and double-click `ORIGIN0.exe`.** In Image studio, choose Set up image engine. The executable includes the CPU runtime; first setup downloads a verified 6.52 GB Z-Image-Turbo model pack. No Python, API key or service subscription is required for native image generation.
+**Extract `ORIGIN0_WINDOWS_v1.6.1.zip` and double-click `ORIGIN0.exe`.** In Image studio, choose Set up image engine. The executable includes the CPU runtime; first setup downloads a verified 6.52 GB Z-Image-Turbo model pack. No Python, API key or service subscription is required for native image generation.
 
 New in this release:
 
@@ -21,3 +21,5 @@ Windows x64 with AVX2 is the packaged target. Keep at least 10 GB free for setup
 Worker PCs execute whole image jobs. A reachable relay server is needed for the new outbound internet route; no public relay is provided. The PIN protects the local interface and APIs, not unencrypted files or the operating-system process.
 
 Application: MIT. Default native weights: Apache-2.0. Source and contribution instructions: https://github.com/HUGELU/HASL .
+
+Version 1.6.1 corrects malformed dropdown options in Concept Studio and adds browser assertions for the affected attribute and licence controls. It also prevents superseded release candidates from publishing.

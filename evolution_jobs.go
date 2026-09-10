@@ -425,7 +425,7 @@ func writeSourceTree(src map[string]string, dir string) error {
 	names := append([]string{}, rebuildFiles...)
 	sort.Strings(names)
 	var snapshot strings.Builder
-	snapshot.WriteString("ORIGIN-0 v1.6: exact source used for this build.\n")
+	snapshot.WriteString("ORIGIN-0 v1.6.1: exact source used for this build.\n")
 	for _, name := range names {
 		if err := atomicWrite(filepath.Join(dir, filepath.FromSlash(name)), []byte(src[name])); err != nil {
 			return err

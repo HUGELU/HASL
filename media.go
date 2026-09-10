@@ -323,6 +323,6 @@ func (e *Engine) mediaRoutes(mux *http.ServeMux) {
 		goal := e.lab.Goal
 		branch := e.lab.Branch
 		e.mu.RUnlock()
-		jsonReply(w, map[string]string{"text": "Help me improve ORIGIN-0 for this goal: " + goal + "\nCurrent branch: " + branch + "\nORIGIN-0 v1.6 has a bounded raw-byte graph, UI experiments, local snapshots, and optional API-backed text, vision, image and transcription adapters. FLUX is inspiration only. Give one useful, testable next improvement with clear input requirements. Do not assume general intelligence, sentience, full file comprehension, autonomous code deployment, or a live connection to this program. I can paste your response back as a new observation."})
+		jsonReply(w, map[string]string{"text": "Help me improve ORIGIN-0 for this goal: " + goal + "\nCurrent branch: " + branch + "\nORIGIN-0 v1.6.1 has a bounded raw-byte graph, UI experiments, local snapshots, and optional API-backed text, vision, image and transcription adapters. FLUX is inspiration only. Give one useful, testable next improvement with clear input requirements. Do not assume general intelligence, sentience, full file comprehension, autonomous code deployment, or a live connection to this program. I can paste your response back as a new observation."})
 	})
 }

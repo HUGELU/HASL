@@ -1448,7 +1448,7 @@ func (e *Engine) view() StateView {
 	labSummary.Learning = LearningState{}
 	labSummary.Studio = ConceptState{}
 	labSummary.Jobs = nil
-	return StateView{Lab: cloneLab(labSummary), Version: "1.6-concept-studio", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
+	return StateView{Lab: cloneLab(labSummary), Version: "1.6.1-concept-studio", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
 }
 
 func (e *Engine) requestApproval(kind, request, why string) {

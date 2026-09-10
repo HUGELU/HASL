@@ -5,11 +5,11 @@ reviewed teaching examples, interface experiments and volunteer worker PCs
 available in one local application. Application code: **MIT**. The native
 Z-Image-Turbo model pack uses **Apache-2.0** weights.
 
-[Windows v1.6 ZIP](https://github.com/HUGELU/HASL/releases/download/v1.6.0/ORIGIN0_WINDOWS_v1.6.zip) ·
-[ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.6.0/ORIGIN0.exe) ·
-[Release evidence and checksums](https://github.com/HUGELU/HASL/releases/tag/v1.6.0)
+[Windows v1.6.1 ZIP](https://github.com/HUGELU/HASL/releases/download/v1.6.1/ORIGIN0_WINDOWS_v1.6.1.zip) ·
+[ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.6.1/ORIGIN0.exe) ·
+[Release evidence and checksums](https://github.com/HUGELU/HASL/releases/tag/v1.6.1)
 
-The v1.6 release workflow publishes these downloads only after source, browser
+The v1.6.1 release workflow publishes these downloads only after source, browser
 and actual native Windows image-generation tests pass. See
 [validation](VALIDATION_V16.md) for the exact scope.
 

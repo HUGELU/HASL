@@ -1,4 +1,4 @@
-ORIGIN-0 v1.6 — LOCAL IMAGE STUDIO
+ORIGIN-0 v1.6.1 — LOCAL IMAGE STUDIO
 
 WINDOWS FIRST RUN
 1. Put ORIGIN0.exe in a normal folder and double-click it.

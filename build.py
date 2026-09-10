@@ -21,7 +21,7 @@ def main():
     args = p.parse_args()
     bundle = {name: (ROOT / name).read_text(encoding='utf-8') for name in FILES}
     (ROOT / 'source_bundle.json').write_text(json.dumps(bundle, sort_keys=True), encoding='utf-8')
-    text = 'ORIGIN-0 v1.6: exact source snapshot embedded at build time.\n'
+    text = 'ORIGIN-0 v1.6.1: exact source snapshot embedded at build time.\n'
     for name in FILES:
         text += '\n===== ' + name + ' =====\n' + (ROOT / name).read_text(encoding='utf-8')
     (ROOT / 'source_snapshot.txt').write_text(text, encoding='utf-8')
