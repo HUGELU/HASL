@@ -9,11 +9,11 @@ export function mountEcosystem(el,state){
  const nav=document.createElement('nav');nav.className='origin-source-tabs';nav.setAttribute('aria-label','Model sources');
  const panel=document.createElement('section');panel.id='ecosystem-panel';panel.className='origin-page';panel.hidden=true;
  const catalogue=el.querySelector('#model-cards'),search=el.querySelector('#catalog-search');
- catalogue.before(nav,panel);
+ const title=el.querySelector('.origin-title'),machine=el.querySelector('.origin-machine'),engine=el.querySelector('.origin-engine');title.before(nav);title.after(panel);
  const views=[['packs','Starter packs'],['huggingface','Hugging Face'],['civitai','Civitai'],['installed','Installed models'],['matrix','Stability Matrix']];
  let current=0;
  for(const [id,label]of views){const b=document.createElement('button');b.textContent=label;b.type='button';b.dataset.source=id;b.setAttribute('aria-pressed',String(id==='packs'));nav.append(b);b.onclick=async()=>{
-  const version=++current;for(const n of nav.children)n.setAttribute('aria-pressed',String(n===b));catalogue.hidden=id!=='packs';search.hidden=id!=='packs';panel.hidden=id==='packs';panel.replaceChildren();
+  const version=++current;for(const n of nav.children)n.setAttribute('aria-pressed',String(n===b));catalogue.hidden=id!=='packs';search.hidden=id!=='packs';machine.hidden=id!=='packs';engine.hidden=id!=='packs';panel.hidden=id==='packs';panel.replaceChildren();
   if(id==='packs')return;
   if(id==='huggingface'||id==='civitai'){sourceBrowser(panel,id);return}
   panel.textContent='Reading the connected library…';try{const view=id==='matrix'?await matrixPage():await installedPage();if(current===version)panel.replaceChildren(view)}catch(e){if(current===version)panel.textContent=e.message}

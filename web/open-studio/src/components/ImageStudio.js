@@ -1,4 +1,4 @@
-import { muapi, escapeHTML } from '../lib/muapi.js';
+import { muapi, escapeHTML, localAPI } from '../lib/muapi.js';
 import {
     t2iModels, getAspectRatiosForModel, getResolutionsForModel, getQualityFieldForModel,
     i2iModels, getAspectRatiosForI2IModel, getResolutionsForI2IModel, getQualityFieldForI2IModel,
@@ -387,14 +387,14 @@ export function ImageStudio() {
                 </div>
                 <input type="range" id="reference-strength-slider" min="0" max="100" step="5" value="50" 
                     class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-                <p class="text-xs text-muted">How much to preserve the reference image characteristics</p>
+                <p class="text-xs text-muted">Higher values change more of the reference image.</p>
             </div>
             
             <!-- LoRA Model Selection -->
             <div class="flex flex-col gap-2">
                 <label class="text-xs font-bold text-secondary uppercase tracking-wider">LoRA Model (Optional)</label>
                 <input type="text" id="lora-input" 
-                    placeholder="e.g., civitai:1642876@1864626"
+                    placeholder="Choose an installed LoRA filename" list="origin-local-loras"
                     class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
                 <div class="flex items-center gap-2 mt-1">
                     <label class="text-xs font-bold text-secondary">LoRA Weight:</label>
@@ -402,7 +402,7 @@ export function ImageStudio() {
                         value="1.0" min="0" max="4" step="0.1"
                         class="w-20 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors">
                 </div>
-                <p class="text-xs text-muted">Enter a LoRA model ID from local ComfyUI (format: civitai:id@version)</p>
+                <p class="text-xs text-muted">Choose a local LoRA that matches this base model. Install it through Civitai, Hugging Face or Matrix first.</p>
             </div>
         </div>
     `;
@@ -601,6 +601,9 @@ export function ImageStudio() {
     
     // LoRA input
     const loraInput = advancedPanel.querySelector('#lora-input');
+    const loraChoices=document.createElement('datalist');loraChoices.id='origin-local-loras';advancedPanel.append(loraChoices);
+    if(t2iModels.find(m=>m.id===selectedModel)?.engine!=='native')localAPI('/api/studio/comfy',{}).then(data=>{for(const name of data.loaders?.LoraLoader?.input?.required?.lora_name?.[0]||[]){const option=document.createElement('option');option.value=name;loraChoices.append(option)}}).catch(()=>{});
+
     if (loraInput) {
         loraInput.oninput = (e) => {
             selectedLora = e.target.value.trim();
@@ -611,7 +614,7 @@ export function ImageStudio() {
     const loraWeightInput = advancedPanel.querySelector('#lora-weight-input');
     if (loraWeightInput) {
         loraWeightInput.oninput = (e) => {
-            loraWeight = parseFloat(e.target.value) || 1.0;
+            loraWeight = Number.isFinite(parseFloat(e.target.value)) ? parseFloat(e.target.value) : 1.0;
         };
     }
     

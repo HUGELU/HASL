@@ -137,6 +137,13 @@ func (s *MediaStudio) providerJSON(ctx context.Context, raw string, out any) err
 		return fmt.Errorf("%s rate limit reached; wait before searching again", u.Host)
 	}
 	if res.StatusCode != 200 {
+		var detail struct {
+			Error any `json:"error"`
+		}
+		_ = json.NewDecoder(io.LimitReader(res.Body, 4096)).Decode(&detail)
+		if msg, ok := detail.Error.(string); ok {
+			return fmt.Errorf("%s returned HTTP %d: %s", u.Host, res.StatusCode, shortText(msg, 600))
+		}
 		return fmt.Errorf("%s returned HTTP %d", u.Host, res.StatusCode)
 	}
 	b, e := io.ReadAll(io.LimitReader(res.Body, (8<<20)+1))
@@ -187,7 +194,13 @@ func (s *MediaStudio) searchSource(ctx context.Context, q SourceQuery) ([]Source
 				AllowDifferentLicense bool
 			}
 		}
-		u := "https://civitai.com/api/v1/models?limit=30&nsfw=false&page=" + strconv.Itoa(maxInt(1, minInt(100, q.Page))) + "&query=" + url.QueryEscape(strings.TrimSpace(q.Query))
+		u := "https://civitai.com/api/v1/models?limit=30&nsfw=false"
+		if query := strings.TrimSpace(q.Query); query != "" {
+			// Civitai rejects page + text query; text search uses cursor pagination.
+			u += "&query=" + url.QueryEscape(query)
+		} else {
+			u += "&page=" + strconv.Itoa(maxInt(1, minInt(33, q.Page)))
+		}
 		if e := s.providerJSON(ctx, u, &rows); e != nil {
 			return nil, e
 		}

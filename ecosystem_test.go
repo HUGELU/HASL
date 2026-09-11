@@ -121,6 +121,25 @@ func TestCivitaiVersionsAndModelTermsRetained(t *testing.T) {
 		t.Fatal("changed revision accepted")
 	}
 }
+
+func TestCivitaiTextSearchOmitsIncompatiblePageParameter(t *testing.T) {
+	e := NewEngine(t.TempDir())
+	defer e.Stop()
+	s := e.mediaStudio
+	s.client = &http.Client{Transport: sourceTestTransport(func(r *http.Request) (*http.Response, error) {
+		q := r.URL.Query()
+		if q.Get("query") != "" && q.Has("page") {
+			t.Error("Civitai rejects page with a text query")
+		}
+		return sourceResponse(r, map[string]any{"items": []any{map[string]any{"id": 42, "name": "Architecture", "type": "Checkpoint"}}}), nil
+	})}
+	for _, query := range []string{"RealVisXL", ""} {
+		items, err := s.searchSource(context.Background(), SourceQuery{Provider: "civitai", Query: query, Page: 1})
+		if err != nil || len(items) != 1 {
+			t.Fatal(items, err)
+		}
+	}
+}
 func TestMatrixLinkKeepsExistingFilesAndAddsSharedPaths(t *testing.T) {
 	e := NewEngine(t.TempDir())
 	defer e.Stop()
