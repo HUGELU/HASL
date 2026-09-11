@@ -25,6 +25,8 @@ type StudioModel struct {
 	Steps       int            `json:"steps"`
 	Guidance    float64        `json:"guidance"`
 	Files       []DownloadSpec `json:"files"`
+	External    bool           `json:"external,omitempty"`
+	BaseModel   string         `json:"base_model,omitempty"`
 }
 type StudioInstall struct {
 	ID string `json:"id"`
@@ -32,18 +34,26 @@ type StudioInstall struct {
 }
 
 func (s *MediaStudio) model(id string) (StudioModel, error) {
-	for _, m := range s.catalog {
+	for _, m := range s.models() {
 		if m.ID == id {
 			return m, nil
 		}
 	}
 	return StudioModel{}, errors.New("unknown local model; choose a catalogue model or an imported workflow")
 }
+func (s *MediaStudio) models() []StudioModel {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append(append([]StudioModel{}, s.catalog...), s.community...)
+}
 func (s *MediaStudio) modelRoot() string { return filepath.Join(s.root(), "models") }
 func (s *MediaStudio) modelFile(f DownloadSpec) string {
 	return filepath.Join(s.modelRoot(), f.Role, f.Name)
 }
 func (s *MediaStudio) modelInstalled(m StudioModel) bool {
+	if m.External {
+		return true
+	} // Registered from the running engine's loader list; submission revalidates it.
 	if m.Engine == "native" {
 		s.e.images.mu.Lock()
 		defer s.e.images.mu.Unlock()
@@ -67,6 +77,9 @@ func (s *MediaStudio) installModel(id string) error {
 	m, err := s.model(id)
 	if err != nil {
 		return err
+	}
+	if m.External {
+		return errors.New("this model belongs to your connected engine; it does not need another download")
 	}
 	if m.Engine == "native" {
 		return s.e.images.startSetup(recommendImage(hardwareProfile(), "balanced", false).Config)
@@ -94,7 +107,7 @@ func (s *MediaStudio) installModel(id string) error {
 			s.mu.Lock()
 			s.install.File = i + 1
 			s.mu.Unlock()
-			failure = downloadPinned(ctx, s.client, f, s.modelFile(f), func(msg string, n, t int64) {
+			failure = downloadPinned(ctx, s.downloadClient(), f, s.modelFile(f), func(msg string, n, t int64) {
 				s.mu.Lock()
 				s.install.Message = msg
 				s.install.Done = done + n

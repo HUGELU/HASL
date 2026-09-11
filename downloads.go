@@ -104,11 +104,13 @@ func downloadPinned(ctx context.Context, client *http.Client, spec DownloadSpec,
 		if start == spec.Size {
 			break
 		}
-		req, err := http.NewRequestWithContext(ctx, "GET", spec.URL, nil)
+		attemptCtx, cancelAttempt := context.WithCancel(ctx)
+		defer cancelAttempt()
+		req, err := http.NewRequestWithContext(attemptCtx, "GET", spec.URL, nil)
 		if err != nil {
 			return err
 		}
-		req.Header.Set("User-Agent", "ORIGIN0/1.6.1 (+https://github.com/HUGELU/HASL)")
+		req.Header.Set("User-Agent", "ORIGIN0/1.9.0 (+https://github.com/HUGELU/HASL)")
 		req.Header.Set("Accept-Encoding", "identity")
 		if start > 0 {
 			req.Header.Set("Range", fmt.Sprintf("bytes=%d-", start))
@@ -118,6 +120,9 @@ func downloadPinned(ctx context.Context, client *http.Client, spec DownloadSpec,
 			lastErr = err
 			continue
 		}
+		// Interrupt a stalled body read, preserving the partial file for retry.
+		idle := time.AfterFunc(90*time.Second, cancelAttempt)
+		defer idle.Stop()
 		if res.StatusCode != 200 && res.StatusCode != 206 {
 			res.Body.Close()
 			return fmt.Errorf("download returned HTTP %d for %s; check the connection and retry", res.StatusCode, spec.Name)
@@ -150,6 +155,7 @@ func downloadPinned(ctx context.Context, client *http.Client, spec DownloadSpec,
 		for {
 			n, readErr := res.Body.Read(buf)
 			if n > 0 {
+				idle.Reset(90 * time.Second)
 				if written+int64(n) > spec.Size {
 					lastErr = errors.New("download exceeds its pinned length")
 					break
@@ -168,6 +174,9 @@ func downloadPinned(ctx context.Context, client *http.Client, spec DownloadSpec,
 			if readErr != nil {
 				if readErr != io.EOF {
 					lastErr = readErr
+					if attemptCtx.Err() != nil && ctx.Err() == nil {
+						lastErr = errors.New("no download data received for 90 seconds")
+					}
 				} else if written != spec.Size {
 					lastErr = io.ErrUnexpectedEOF
 				} else {
@@ -179,6 +188,8 @@ func downloadPinned(ctx context.Context, client *http.Client, spec DownloadSpec,
 		syncErr := f.Sync()
 		closeErr := f.Close()
 		res.Body.Close()
+		idle.Stop()
+		cancelAttempt()
 		if syncErr != nil {
 			return syncErr
 		}

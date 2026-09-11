@@ -5,7 +5,7 @@ export async function localAPI(path,body,raw=false){
  const headers={'X-Origin-Key':sessionStorage.getItem('origin-session')||''};
  const options={headers,method:body===undefined?'GET':'POST'};
  if(body!==undefined){if(body instanceof Blob){options.body=body;headers['Content-Type']=body.type||'application/octet-stream'}else{options.body=JSON.stringify(body);headers['Content-Type']='application/json'}}
- const r=await fetch(path,options);if(r.status===423){window.parent?.showPrivacy?.();throw new Error('Workspace locked')};if(!r.ok)throw new Error((await r.text()).slice(0,1200));if(raw)return r;if(r.status===204||r.status===202)return null;return r.json();
+ options.signal=AbortSignal.timeout(/\/(state|readiness)$/.test(path)?12000:60000);const r=await fetch(path,options);if(r.status===423){window.parent?.showPrivacy?.();throw new Error('Workspace locked')};if(!r.ok)throw new Error((await r.text()).slice(0,1200));if(raw)return r;if(r.status===204||r.status===202)return null;return r.json();
 }
 const assetURLs=new Map();
 const sockets=new Map();

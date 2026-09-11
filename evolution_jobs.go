@@ -142,6 +142,7 @@ var rebuildFiles = []string{
 	"SOURCE_README.md",
 	"LOCAL_MODELS.md",
 	"build.py",
+	"model_sources.go", "stability_matrix.go", "studio_setup.go", "ecosystem_test.go", "web/open-studio/src/ecosystem.js",
 	"media_studio.go",
 	"media_catalog.go",
 	"comfy.go",

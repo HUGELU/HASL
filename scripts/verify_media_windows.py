@@ -1,5 +1,5 @@
 """Real Windows portable installation and neural generation through the new studio API."""
-import argparse,json,time,urllib.error,shutil,hashlib,struct,http.client
+import argparse,json,time,urllib.error,shutil,hashlib,struct,http.client,subprocess
 from pathlib import Path
 from acceptance_app import App
 
@@ -34,17 +34,18 @@ def main():
     report['app_version']=app.api('/api/state')['version']
     state=app.api('/api/studio/state',{});report['hardware']=state['hardware'];assert len(state['catalog'])==7
     app.api('/api/studio/config',{**state['config'],'device':'cpu'})
-    app.api('/api/studio/comfy-setup',{})
-    wait('ComfyUI portable',lambda:app.api('/api/studio/state',{})['install'],lambda s:s['status']=='ready',lambda s:s['status'] in ['failed','error','cancelled'],1200)
-    deadline=time.monotonic()+180;error=''
-    while time.monotonic()<deadline:
-     try:
-      probe=app.api('/api/studio/comfy',{});break
-     except (urllib.error.HTTPError,urllib.error.URLError) as e:error=str(e);time.sleep(3)
-    else:raise RuntimeError('ComfyUI startup failed: '+error)
-    report['comfy_system']=probe['system'];report['checks'].append('Official pinned Windows portable extracted with the verified standalone 7-Zip utility; embedded Python started ComfyUI in CPU mode')
-    app.api('/api/studio/install',{'id':'sd15'})
-    wait('SD 1.5 model',lambda:app.api('/api/studio/state',{})['install'],lambda s:s['status']=='ready',lambda s:s['status'] in ['failed','error','cancelled'],1200)
+    app.api('/api/studio/prepare',{'id':'sd15'})
+    def preparation():
+     s=app.api('/api/studio/state',{});return {**s['preparation'],'done':s['install'].get('done',0),'total':s['install'].get('total',0)}
+    wait('Combined engine + model setup',preparation,lambda s:s['status']=='ready',lambda s:s['status'] in ['failed','error','cancelled'],1800)
+    probe=app.api('/api/studio/comfy',{});report['comfy_system']=probe['system']
+    report['checks'].append('Single Set up & use request installed portable ComfyUI, started its embedded Python, downloaded SD 1.5 and verified loader availability before selecting the model')
+    app.api('/api/studio/matrix/install',{})
+    wait('Stability Matrix',lambda:app.api('/api/studio/state',{})['install'],lambda s:s['status']=='ready',lambda s:s['status'] in ['failed','error','cancelled'],600)
+    matrix=app.api('/api/studio/matrix',{});assert matrix['installed']
+    help_run=subprocess.run([matrix['executable'],'--help'],capture_output=True,text=True,timeout=120)
+    (out/'matrix-cli.log').write_text(help_run.stdout+'\n'+help_run.stderr,encoding='utf-8');assert help_run.returncode==0,help_run.stderr
+    report['checks'].append('Official checksum-pinned Stability Matrix package downloaded and extracted; its actual Windows executable accepted --help. This is CLI startup verification, not full desktop UI acceptance')
     # ComfyUI refreshes its filename lists when object_info is requested.
     probe=app.api('/api/studio/comfy',{});loader=probe['loaders']['CheckpointLoaderSimple']['input']['required']['ckpt_name'][0];assert 'v1-5-pruned-emaonly.safetensors' in loader
     report['checks'].append('Pinned model downloaded to shared model folders and discovered by the running ComfyUI checkpoint loader')

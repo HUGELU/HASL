@@ -14,15 +14,17 @@ import (
 )
 
 type StudioConfig struct {
-	Brand         string `json:"brand"`
-	Tagline       string `json:"tagline"`
-	Accent        string `json:"accent"`
-	Logo          string `json:"logo,omitempty"`
-	ComfyURL      string `json:"comfy_url"`
-	ActiveModel   string `json:"active_model"`
-	ManagedPython string `json:"managed_python,omitempty"`
-	ManagedRoot   string `json:"managed_root,omitempty"`
-	Device        string `json:"device"`
+	Brand            string `json:"brand"`
+	Tagline          string `json:"tagline"`
+	Accent           string `json:"accent"`
+	Logo             string `json:"logo,omitempty"`
+	ComfyURL         string `json:"comfy_url"`
+	ActiveModel      string `json:"active_model"`
+	ManagedPython    string `json:"managed_python,omitempty"`
+	ManagedRoot      string `json:"managed_root,omitempty"`
+	Device           string `json:"device"`
+	MatrixLibrary    string `json:"matrix_library,omitempty"`
+	MatrixExecutable string `json:"matrix_executable,omitempty"`
 }
 type StudioRequest struct {
 	Model      string   `json:"model"`
@@ -64,14 +66,18 @@ type MediaStudio struct {
 	closed        bool
 	jobs          []*ComfyJob
 	cancels       map[string]context.CancelFunc
+	community     []StudioModel
+	preparation   StudioPreparation
+	prepareCancel context.CancelFunc
 }
 
 func newMediaStudio(e *Engine) *MediaStudio {
-	s := &MediaStudio{e: e, catalog: studioCatalog(), verified: map[string]bool{}, cancels: map[string]context.CancelFunc{}, client: &http.Client{Transport: &http.Transport{ResponseHeaderTimeout: 45 * time.Second, IdleConnTimeout: 60 * time.Second}}, config: StudioConfig{Brand: "ORIGIN-0", Tagline: "Your local creative studio", Accent: "#d9ff00", ComfyURL: "http://127.0.0.1:8188", ActiveModel: "native-z-image", Device: "auto"}}
+	s := &MediaStudio{e: e, catalog: studioCatalog(), verified: map[string]bool{}, cancels: map[string]context.CancelFunc{}, client: &http.Client{Transport: &http.Transport{Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 45 * time.Second, IdleConnTimeout: 60 * time.Second}}, config: StudioConfig{Brand: "ORIGIN-0", Tagline: "Your local creative studio", Accent: "#d9ff00", ComfyURL: "http://127.0.0.1:8188", ActiveModel: "native-z-image", Device: "auto"}}
 	var saved struct {
-		Config   StudioConfig
-		Verified map[string]bool
-		Jobs     []*ComfyJob
+		Config    StudioConfig
+		Verified  map[string]bool
+		Jobs      []*ComfyJob
+		Community []StudioModel
 	}
 	if b, err := os.ReadFile(filepath.Join(s.root(), "studio.json")); err == nil && json.Unmarshal(b, &saved) == nil {
 		if validStudioConfig(saved.Config) == nil {
@@ -81,12 +87,16 @@ func newMediaStudio(e *Engine) *MediaStudio {
 			s.verified = saved.Verified
 		}
 		s.jobs = saved.Jobs
+		s.community = saved.Community
 		for _, j := range s.jobs {
 			if j.Status == "queued" || j.Status == "running" {
 				j.Status = "interrupted"
 				j.Message = "ORIGIN restarted. Check ComfyUI history before resubmitting; an externally managed engine may still have the task."
 			}
 		}
+	}
+	if s.config.MatrixLibrary == "" {
+		s.config.MatrixLibrary = detectMatrixLibrary()
 	}
 	return s
 }
@@ -96,16 +106,20 @@ func (s *MediaStudio) save() {
 	defer s.persistMu.Unlock()
 	s.mu.Lock()
 	b, _ := json.MarshalIndent(struct {
-		Config   StudioConfig
-		Verified map[string]bool
-		Jobs     []*ComfyJob
-	}{s.config, s.verified, s.jobs}, "", "  ")
+		Config    StudioConfig
+		Verified  map[string]bool
+		Jobs      []*ComfyJob
+		Community []StudioModel
+	}{s.config, s.verified, s.jobs, s.community}, "", "  ")
 	s.mu.Unlock()
 	_ = atomicWrite(filepath.Join(s.root(), "studio.json"), b)
 }
 func (s *MediaStudio) close() {
 	s.mu.Lock()
 	s.closed = true
+	if s.prepareCancel != nil {
+		s.prepareCancel()
+	}
 	if s.installCancel != nil {
 		s.installCancel()
 	}
@@ -137,6 +151,7 @@ func (s *MediaStudio) state() any {
 	s.mu.Lock()
 	c := s.config
 	i := s.install
+	preparation := s.preparation
 	// Polling never serialises the full workflow archive; graphs are retrieved on demand.
 	summaries := make([]ComfyJob, 0, len(s.jobs))
 	for _, job := range s.jobs {
@@ -149,14 +164,14 @@ func (s *MediaStudio) state() any {
 	var jobs any
 	_ = json.Unmarshal(b, &jobs)
 	list := []any{}
-	for _, m := range s.catalog {
+	for _, m := range s.models() {
 		var size int64
 		for _, f := range m.Files {
 			size += f.Size
 		}
 		list = append(list, map[string]any{"model": m, "installed": s.modelInstalled(m), "download_bytes": size})
 	}
-	return map[string]any{"config": c, "catalog": list, "install": i, "jobs": jobs, "hardware": hardwareProfile(), "model_folder": s.modelRoot(), "upstream": "Autom8AI/Open-Higgsfield-AI", "upstream_commit": "b578108936e83a3b2a5e86644057a56f8aea73a1"}
+	return map[string]any{"config": c, "catalog": list, "install": i, "preparation": preparation, "jobs": jobs, "hardware": hardwareProfile(), "model_folder": s.modelRoot(), "upstream": "Autom8AI/Open-Higgsfield-AI", "upstream_commit": "b578108936e83a3b2a5e86644057a56f8aea73a1"}
 }
 func (s *MediaStudio) generate(q StudioRequest) (any, error) {
 	m, err := s.model(q.Model)
@@ -191,10 +206,14 @@ func (s *MediaStudio) generate(q StudioRequest) (any, error) {
 	if !s.modelInstalled(m) {
 		return nil, errors.New("download and verify this model pack first")
 	}
+	if m.Recipe == "workflow" {
+		return nil, errors.New("this component needs its matching ComfyUI workflow and companion models; open Video & workflows")
+	}
 	return s.submitComfy(q, m)
 }
 func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 	s := e.mediaStudio
+	s.ecosystemRoutes(mux)
 	mux.HandleFunc("/studio/ws", e.comfyLive)
 	sub, _ := fs.Sub(assets, "web/open-studio")
 	mux.Handle("/open-studio/", http.StripPrefix("/open-studio/", http.FileServer(http.FS(sub))))
@@ -230,6 +249,8 @@ func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 		s.mu.Lock()
 		q.ManagedPython = s.config.ManagedPython
 		q.ManagedRoot = s.config.ManagedRoot
+		q.MatrixLibrary = s.config.MatrixLibrary
+		q.MatrixExecutable = s.config.MatrixExecutable
 		s.config = q
 		s.mu.Unlock()
 		s.save()
@@ -253,6 +274,9 @@ func (e *Engine) mediaStudioRoutes(mux *http.ServeMux) {
 			return
 		}
 		s.mu.Lock()
+		if s.prepareCancel != nil {
+			s.prepareCancel()
+		}
 		if s.installCancel != nil {
 			s.installCancel()
 		}

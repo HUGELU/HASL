@@ -1,8 +1,8 @@
 # ORIGIN-0 / AUTO-KI · Open Creative Studio
 
-**[Download Windows v1.8.0](https://github.com/HUGELU/HASL/releases/download/v1.8.0/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.8.0.zip)** ·
-[Standalone ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.8.0/ORIGIN0.exe) ·
-[Validation, checksums and recovery](https://github.com/HUGELU/HASL/releases/tag/v1.8.0)
+**[Download Windows v1.9.0](https://github.com/HUGELU/HASL/releases/download/v1.9.0/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.9.0.zip)** ·
+[Standalone ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.9.0/ORIGIN0.exe) ·
+[Validation, checksums and recovery](https://github.com/HUGELU/HASL/releases/tag/v1.9.0)
 
 Extract the ZIP, run **ORIGIN0.exe**, then open **Creative studio → Models & engines**.
 Download a model pack and choose **Use model**. Keep your existing `origin0_data`
@@ -26,7 +26,7 @@ localhost; use an authorised localhost tunnel for a remote workstation.
 
 See [MEDIA_STUDIO.md](MEDIA_STUDIO.md) for setup, provenance and scope and
 [RECOVERY_MEDIA_STUDIO.md](RECOVERY_MEDIA_STUDIO.md) for the saved checkpoint.
-The v1.8.0 executable passed the complete Windows first-run path: verified portable
+The v1.9.0 executable passed the complete Windows first-run path: verified portable
 ComfyUI installation, native generation, ComfyUI generation and reference editing.
 The package includes the actual images, parameters, logs and browser evidence.
 The acceptance images used 256 × 256 pixels and two steps on a four-thread CPU;
@@ -60,7 +60,7 @@ measured property plans, photo walkthroughs and local coding experiments.
 Application code: **MIT**. Z-Image-Turbo weights: **Apache-2.0**.
 Real-ESRGAN/NCNN: **BSD-3-Clause**.
 
-Use the current v1.8.0 downloads at the top of this page. Earlier production
+Use the current v1.9.0 downloads at the top of this page. Earlier production
 evidence remains available in [v1.7.0](https://github.com/HUGELU/HASL/releases/tag/v1.7.0)
 and its [validation report](VALIDATION_V17.md).
 

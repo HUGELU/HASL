@@ -1,3 +1,17 @@
+# Connected Studio v1.9.0 work checkpoint — 11 September 2026
+
+Base preserved: origin0-media-studio at 1a065524d4969223400d6f7003701a4b633ff68e, with published v1.8.0 unchanged. PR #6 remains the working integration PR. A previous main-branch merge was blocked by automatic approval review and has not been retried or bypassed.
+
+Implemented: live Hugging Face/Civitai discovery and immutable/hash-verified model imports; local provider tokens excluded from diagnostics; dynamic saved model registry; actual Stability Matrix installer/CLI/package launch and read-only shared-library integration; combined engine/model setup with readiness checks; installed checkpoint selection; shared ComfyUI paths; first-run progress, diagnostics and download inactivity handling. Existing functionality is retained.
+
+Local checks: Go build passed; full Go race suite passed in 32.479 s. Expanded browser checks passed, including model-source selection, version/file UI with labelled provider fixtures, Matrix controls, diagnostics, branding, Common Vision access and five responsive widths. Direct read-only upstream metadata verified HF model-revision/LFS fields and Matrix v2.16.3 CLI flags. The local live-provider acceptance was blocked with HTTP 400 and the execution tool subsequently reported a cancelled network-approval request; it is not recorded as a passing live-provider test.
+
+Pending release gates: source CI/vet and retained production/browser tests; live provider metadata checks on the normal CI runner; actual Windows single-action engine/model setup, Matrix executable startup, native/ComfyUI generation and reference edit. Package and publish v1.9.0 only if those gates pass. Preserve failures and report concrete output rather than repeatedly waiting. Keep the final tested executable unchanged during packaging.
+
+Remaining product limits: full Matrix desktop UI runs separately; no claim of optimal Intel GPU performance or universal model compatibility; advanced video/other architectures require matching workflows/components. Original 12 + 1 values remain awaiting source material. Preserve origin0_data on upgrade.
+
+---
+
 # Open Studio recovery checkpoint
 
 ## Published and verified — 10 September 2026

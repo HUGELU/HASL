@@ -88,6 +88,8 @@ jobs:
         run: python3 scripts/verify_common_vision_browser.py --binary release/origin0-linux-amd64
       - name: Exercise embedded Open Studio and white-label UI
         run: python3 scripts/verify_media_browser.py --binary release/origin0-linux-amd64
+      - name: Check live Hugging Face and Civitai metadata through ORIGIN
+        run: python3 scripts/verify_ecosystem_api.py --binary release/origin0-linux-amd64
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -99,6 +101,7 @@ jobs:
             release/common-vision-api/
             release/common-vision-browser/
             release/media-browser/
+            release/ecosystem-api/
             release/container-acceptance/
             bundled/origin0-upscale-linux-amd64.zip
             upscale_manifest.json
@@ -304,16 +307,16 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           test "$(gh api repos/$GH_REPO/git/ref/heads/origin0-media-studio --jq '.object.sha')" = "$GITHUB_SHA"
-          if gh release view v1.8.0 >/dev/null 2>&1; then echo 'Release already exists; no asset will be overwritten'; exit 1; fi
-          gh release create v1.8.0 --target "$GITHUB_SHA" --draft --prerelease --title 'ORIGIN-0 v1.8.0 — Open Studio, ComfyUI and local model library' --notes-file MEDIA_STUDIO.md
-          gh release upload v1.8.0 release/ORIGIN0.exe release/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.8.0.zip release/OPEN_STUDIO_SHA256SUMS.txt release/MEDIA_VALIDATION.json release/MEDIA_RECOVERY.md
-          gh release edit v1.8.0 --draft=false --prerelease
+          if gh release view v1.9.0 >/dev/null 2>&1; then echo 'Release already exists; no asset will be overwritten'; exit 1; fi
+          gh release create v1.9.0 --target "$GITHUB_SHA" --draft --prerelease --title 'ORIGIN-0 v1.9.0 — Connected Studio, Stability Matrix and live model providers' --notes-file MEDIA_STUDIO.md
+          gh release upload v1.9.0 release/ORIGIN0.exe release/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.9.0.zip release/OPEN_STUDIO_SHA256SUMS.txt release/MEDIA_VALIDATION.json release/MEDIA_RECOVERY.md
+          gh release edit v1.9.0 --draft=false --prerelease
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: origin0-open-studio-release
           path: |
-            release/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.8.0.zip
+            release/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.9.0.zip
             release/ORIGIN0.exe
             release/OPEN_STUDIO_SHA256SUMS.txt
             release/MEDIA_VALIDATION.json

@@ -223,7 +223,7 @@ func (s *MediaStudio) startComfy() error {
 	}
 	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
-	yaml := "origin0:\n  base_path: " + fmt.Sprintf("%q", filepath.ToSlash(s.modelRoot())) + "\n  is_default: true\n  checkpoints: checkpoints\n  diffusion_models: diffusion_models\n  text_encoders: text_encoders\n  vae: vae\n  loras: loras\n"
+	yaml := s.extraModelPaths()
 	ypath := filepath.Join(s.root(), "extra_model_paths.yaml")
 	if err = atomicWrite(ypath, []byte(yaml)); err != nil {
 		return err

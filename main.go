@@ -1335,7 +1335,7 @@ func (e *Engine) consoleLoop() {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	fmt.Println("============================================================")
-	fmt.Println("ORIGIN-0 v1.8.0 - OPEN CREATIVE STUDIO")
+	fmt.Println("ORIGIN-0 v1.9.0 - CONNECTED CREATIVE STUDIO")
 	fmt.Println("Open Models & engines for local model packs and portable ComfyUI.")
 	fmt.Println("============================================================")
 	for {
@@ -1458,7 +1458,7 @@ func (e *Engine) view() StateView {
 	labSummary.Learning = LearningState{}
 	labSummary.Studio = ConceptState{}
 	labSummary.Jobs = nil
-	return StateView{Lab: cloneLab(labSummary), Version: "1.8.0-open-studio", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
+	return StateView{Lab: cloneLab(labSummary), Version: "1.9.0-connected-studio", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
 }
 
 func (e *Engine) requestApproval(kind, request, why string) {

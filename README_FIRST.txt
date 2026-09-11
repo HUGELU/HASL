@@ -1,75 +1,54 @@
-ORIGIN-0 v1.7.1 — COMMON VISION PROTOTYPE
+ORIGIN-0 CONNECTED STUDIO v1.9.0 — WINDOWS PREVIEW
 
-Extract the package, then double-click ORIGIN0.exe.
-Common Vision needs no Python, GPU or model download.
-Click Load labelled demonstration to try contributions, human review, a proposal,
-simulated outcome feedback and a follow-up proposal. Read COMMON_VISION.md.
-Exact original 12 + 1 sources are pending. Demonstrations are not public agreement.
-For recovery, export Common Vision JSON or copy the whole origin0_data folder.
+1. Extract the ZIP into a writable folder, then run ORIGIN0.exe.
+2. Keep its console open; the local studio opens in your browser.
+3. Open Creative studio > Models & engines.
+4. Select a starter pack and click Set up & use. ORIGIN installs the required
+   local engine, downloads/verifies the model, checks readiness and selects it.
+   The top strip shows its actual current stage. Stop download cancels setup;
+   Set up & use resumes partial downloads.
+5. Enter your prompt and generate. Gallery & queue retains outputs and parameters.
 
-Existing image generation and Production tools remain available.
-Image generation needs its separate first-run model download; neural finishing
-is bundled. The v1.7 Windows media acceptance evidence remains at
-https://github.com/HUGELU/HASL/releases/tag/v1.7.0
+MODEL SOURCES
+Starter packs: complete pinned recipes, including native Z-Image and ComfyUI packs.
+Hugging Face / Civitai: live search, exact versions and files, sizes and SHA-256.
+Add & download stores the selected component in the shared model directory.
+Choose the correct recipe: complete SD 1.5 / SDXL checkpoints generate directly;
+FLUX/Qwen components and other architectures need the matching full workflow.
+LoRAs need a matching base model. A downloaded component alone is not a full model.
+Gated items may need your own provider token and accepted model terms.
 
-ORIGIN-0 v1.7.0 — LOCAL IMAGE STUDIO
+STABILITY MATRIX
+Open its tab to install the official Windows manager or link an existing Data
+folder. Existing models/settings are reused without being overwritten. The actual
+Matrix desktop app opens separately and manages its supported packages and training
+tools. Matrix's original branding/terms remain; ORIGIN supports its own white label.
+ORIGIN-managed ComfyUI reads the linked Matrix model library on its next start.
+For an external ComfyUI, download the shared-path YAML, configure it and restart
+that engine. Installed models lists actual checkpoint/LoRA names from the engine.
 
-WINDOWS FIRST RUN
-1. Put ORIGIN0.exe in a normal folder and double-click it.
-2. Keep the console open. It prints the local browser address and opens it.
-3. In Image studio, click Set up image engine. The first run downloads
-   6.52 GB of pinned model files. Progress, verification and errors stay visible.
-4. Wait for Ready, enter a prompt and click Generate image.
-5. Download the PNG when the queue says Completed.
+WHEN SOMETHING FAILS
+Creative studio > Engine status shows actual readiness and startup logs and exports
+ORIGIN0_STUDIO_DIAGNOSTICS.json. Provider keys are excluded from that export.
+The app prints a concrete error for unavailable engines, inaccessible/gated provider
+items, missing model components, stalled downloads and invalid workflows.
 
-No Python, pip, API key or paid model service is needed for Image studio.
-The release executable includes the native CPU runtime. Keep at least 10 GB of
-free disk space for the model pack and setup. 16 GB RAM is a practical starting
-point; 32 GB gives more room. CPU generation takes minutes for a 512-pixel image.
-The Windows CPU package targets modern x64 processors with AVX2. It is not an
-Android, iOS or ARM Windows executable. GPU speed depends on the device/driver.
+HARDWARE AND SCOPE
+This package targets Windows x64. Matrix auto-install also targets Windows x64.
+macOS/Linux can build ORIGIN from source and connect their existing local ComfyUI.
+The package includes native generation/finishing runtimes but generation models
+require GB-sized first downloads. CPU inference can take minutes. More models do
+not imply faster inference. Actual Intel GPU throughput on your Samsung laptop
+remains unbenchmarked. Pick a pack within your RAM and available disk space.
+Advanced video, masks and multi-reference work use installed ComfyUI workflows.
+This does not include proprietary hosted Higgsfield/MuAPI models or subscriptions.
 
-IF SOMETHING FAILS
-Keep the console open and use Download diagnostics in Image studio. Setup and
-generation jobs show the actual error. Try CPU mode if the Vulkan driver or
-runtime fails. Stop and retry an interrupted model download to resume it.
-Never switch off your antivirus to run ORIGIN-0. The executable is unsigned;
-if Windows blocks it, use the documented source/build and report that failure.
+PRESERVATION
+Stop your older ORIGIN process before running this version on the same data.
+Keep the complete origin0_data folder. It contains your settings, models and media.
+Existing Common Vision, architecture, upscaling, learning and PIN tools remain.
+Original 12 + 1 values are still awaiting the owner's source documents.
 
-YOUR FILES
-origin0_data holds state, generated images, model cache and logs. DROP_HERE
-accepts your supplied files. Copy the complete data folder for a full backup.
-ORIGIN0_HOME may point to another writable disk before starting the executable.
-Model-cache files are separate from the research workspace raw archive quota.
-The saved-branch export does not include the multi-GB model cache.
-
-WORKER PCS
-Each PC first prepares its own image engine. The coordinator starts a Worker PCs
-group and creates a private invitation per worker. A worker pastes the invitation,
-sets its job allowance and joins. On the coordinator, select the shared-job
-checkbox before generating. Only explicitly shared prompts go to workers.
-Direct groups need a reachable LAN/private-network address. For internet groups,
-use an operator-deployed HTTPS relay (INTERNET_RELAY.md). Both laptops connect
-outbound; the relay carries encrypted job envelopes. No public relay is supplied.
-This does not pool VRAM or implement torrent transfers/public peer discovery.
-
-SOURCE AND UPDATES
-https://github.com/HUGELU/HASL
-Application: MIT. Default model pack: Apache-2.0. No ORIGIN-0 usage subscription.
-The legacy research, interface and classifier experiments are still available.
-They do not establish automatic improvement of the image model's weights.
-
-NEW CONTROLS
-Production: upload a photo and choose Fast or Learned finishing, with a final
-long edge up to 7680 pixels. The neural runtime and weights are embedded; this
-part requires no first-run model download. Originals and recipes are retained.
-Add measured rooms for an SVG floor plan. Add ordered reference photos for an
-offline photo walkthrough and WebM export. These are photo sequences, not 3D scans.
-Use an installed local coding model for source proposals. Optional executable
-tests need a separately configured Docker sandbox. See PRODUCTION_STUDIO.md.
-
-Concept Studio collects and reviews image examples and evaluates small classifiers.
-Image studio now offers one-image revision, rough previews, batches, ratings and
-saved settings. Hardware defaults are suggestions, not certified performance.
-Settings can protect the interface with a PIN. Save its recovery-code download.
-The PIN does not encrypt files or hide the process from Windows.
+SOURCE / RECOVERY
+https://github.com/HUGELU/HASL/tree/origin0-media-studio
+See MEDIA_STUDIO.md, MEDIA_RECOVERY.md and MEDIA_VALIDATION.json for exact results.
