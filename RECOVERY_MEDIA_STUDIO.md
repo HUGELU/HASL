@@ -1,4 +1,12 @@
-# Connected Studio v1.9.0 work checkpoint — 11 September 2026
+# Published Connected Studio v1.9.0 — 11 September 2026
+
+Release: https://github.com/HUGELU/HASL/releases/tag/v1.9.0. Exact tested application commit: 013e48806a2bb1fbf461fb3e6475c0960ab817f2, branch origin0-media-studio, PR https://github.com/HUGELU/HASL/pull/6. Passing source, Windows and publication run: https://github.com/HUGELU/HASL/actions/runs/34641641245. PR #6 remains open; main has not been merged.
+
+The complete source gate passed, including real Hugging Face and Civitai search/version/file metadata, race tests, vet, restricted container, neural finishing, exported walkthrough video, all retained browser flows, PIN recovery and Common Vision. Source evidence: artifact 10280466734, SHA-256 96fd7e26ff11d79dbb1a3bb371d2cc166b6c689314337d439f778544daa3d9f8.
+
+Windows passed build/tests/vet, single-action ComfyUI/SD 1.5 setup, checksum-verified official Stability Matrix installation and real executable CLI startup, native Z-Image generation, ComfyUI generation and reference editing. Native image: 174.64 s; ComfyUI image: 95.44 s; reference edit: 22.08 s. All three were 256 × 256 at two steps on a four-thread CPU with about 16 GB RAM. There were zero connection-recovery retries and no recorded application panic. These are functional acceptance results, not evidence of superior image quality or Intel GPU performance. Full Matrix desktop interaction was not part of this acceptance. The Windows image-generation test is complete for this release.
+
+The published ZIP contains nine passing report groups, actual images, video recordings, generation parameters and logs. Executable SHA-256: c46316e3090115fd4cbee80da5cb3219dd3598a6a009a0c4463a2e555512e06b. ZIP SHA-256: b6261ca15f4b11cc0ce7cc5af9f44c15c174871c120f685e404174624266ab47. Windows artifact: 10280603340, SHA-256 066087a495c20e30605b2f5e2226b34444a87ca1e5bd5f171929b50ab4c2c26b. Final release artifact: 10281055136. Older releases remain unchanged.
 
 Base preserved: origin0-media-studio at 1a065524d4969223400d6f7003701a4b633ff68e, with published v1.8.0 unchanged. PR #6 remains the working integration PR. A previous main-branch merge was blocked by automatic approval review and has not been retried or bypassed.
 
@@ -10,7 +18,7 @@ First CI candidate f6642cc5cb7d65f4da00c085a392f562c8f6fe29: https://github.com/
 
 The correction was saved at 80df6b160de280956a9f7fb2c77cdd9fbb9a1c07; local Civitai/provider regression tests and the revised five-width browser check passed. Final visual inspection also corrected the inherited v1.8.0 footer. Before supersession, the first Windows candidate completed combined ComfyUI/SD 1.5 setup and actual Matrix executable CLI startup, then was cancelled during the progressing native-model download (1,422,506,327 / 3,683,370,944 bytes). It was not stalled and did not complete image generation. Its partial evidence is preserved in run 34640444449, artifact 10280032719 (SHA-256 15dd17ee89da9e746458eba7818124d24170e2f956e2de89b59904237307288a). The follow-up must complete all generation gates before publication.
 
-Pending release gates: source CI/vet and retained production/browser tests; live provider metadata checks on the normal CI runner; actual Windows single-action engine/model setup, Matrix executable startup, native/ComfyUI generation and reference edit. Package and publish v1.9.0 only if those gates pass. Preserve failures and report concrete output rather than repeatedly waiting. Keep the final tested executable unchanged during packaging.
+Remaining steps: run the published build on the owner's Galaxy Book5 Pro 360 and measure actual Intel GPU throughput; validate the larger FLUX/Qwen packs and specialised video/multi-reference workflows on suitable hardware; obtain the owner's original 12 + 1 source values. Only after explicit approval for the particular main-branch merge, verify the current PR head and merge PR #6. Do not rerun the completed Windows gate for documentation-only changes. Do not replace this release's tested executable; future application changes require a new version and validation.
 
 Remaining product limits: full Matrix desktop UI runs separately; no claim of optimal Intel GPU performance or universal model compatibility; advanced video/other architectures require matching workflows/components. Original 12 + 1 values remain awaiting source material. Preserve origin0_data on upgrade.
 

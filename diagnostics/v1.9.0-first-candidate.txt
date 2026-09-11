@@ -1,0 +1,21 @@
+First candidate: f6642cc5cb7d65f4da00c085a392f562c8f6fe29
+Run: https://github.com/HUGELU/HASL/actions/runs/34640444449
+This candidate was not published. Its source provider test failed; the active Windows test was superseded by the correction.
+
+Source outcome: Hugging Face live search and immutable file metadata passed. Civitai returned HTTP 400 because the application supplied both query and page. Civitai's models API explicitly rejects that combination. Fixed by omitting page for text search, with an added regression test. Full source race/vet, Docker candidate, retained production and browser checks passed before this failure.
+
+Relevant Windows output follows. This proves combined ComfyUI/model setup and Matrix installation reached ready, but does not establish completion of native image generation. The final release must pass generation independently.
++2026-09-11T19:54:16.7509923Z Combined engine + model setup: Engine ready and model files available. Create an image. � 4265146304/4265146304 bytes
+2026-09-11T19:54:16.9601103Z Stability Matrix: Downloading official Stability Matrix � 0/141010114 bytes
+2026-09-11T19:54:18.9619362Z Stability Matrix: Extracting verified Stability Matrix � 141010114/141010114 bytes
+2026-09-11T19:54:22.9657684Z Stability Matrix: Stability Matrix installed. Open it to manage packages and connect its shared library. � 141010114/141010114 bytes
+2026-09-11T19:55:27.3461032Z native setup: Downloading z_image_turbo-Q4_0.gguf � 1422506327/3683370944 bytes
+2026-09-11T19:55:28.5119658Z ORIGIN process exit code: None
+2026-09-11T19:55:36.3956192Z ##[error]The operation was canceled.
+2026-09-11T19:55:40.7974759Z Artifact origin0-open-studio-windows.zip successfully finalized. Artifact ID 10280032719
+2026-09-11T19:55:40.7976284Z Artifact origin0-open-studio-windows has been successfully uploaded! Final size is 72320048 bytes. Artifact ID is 10280032719
+2026-09-11T19:55:40.7997926Z Artifact download URL: https://github.com/HUGELU/HASL/actions/runs/34640444449/artifacts/10280032719
+
+Full source artifact: 10280310174, SHA-256 5a0d2cebb3cc9507e4e97f4d4b03bf2108371887f0a209f19e381c754a5afa30
+Full Windows artifact: 10280032719, SHA-256 15dd17ee89da9e746458eba7818124d24170e2f956e2de89b59904237307288a
+CI artifact retention is finite. This concise diagnostic record is retained in source; the final release archive retains the complete passing run's images, videos, parameters, logs and reports.

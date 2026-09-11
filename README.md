@@ -5,13 +5,17 @@
 [Validation, checksums and recovery](https://github.com/HUGELU/HASL/releases/tag/v1.9.0)
 
 Extract the ZIP, run **ORIGIN0.exe**, then open **Creative studio → Models & engines**.
-Download a model pack and choose **Use model**. Keep your existing `origin0_data`
+Choose a starter pack and click **Set up & use**. ORIGIN prepares its engine,
+downloads the model, checks readiness and selects it. Keep your existing `origin0_data`
 folder when upgrading; stop the earlier ORIGIN process first.
 
 The creative workspace embeds adapted **Autom8AI/Open-Higgsfield-AI** image,
 reference-input and cinema components and connects them to local generation.
-Use **Models & engines** for seven pinned model packs, verified resumable downloads,
-and the official **ComfyUI portable** engine. Use **White label** for your studio
+Use **Models & engines** for live **Hugging Face / Civitai** search, exact model
+versions, verified resumable downloads and seven complete starter packs. Install
+or connect **Stability Matrix**, reuse its shared models, and run the official
+**ComfyUI portable** engine. Matrix opens as its own desktop package manager.
+Use **White label** for your studio
 name, colour, tagline and logo. The full ComfyUI workflow editor is available for
 advanced image, video, audio and other installed workflows.
 
@@ -68,9 +72,10 @@ and its [validation report](VALIDATION_V17.md).
 
 1. Extract the ZIP into a normal writable folder and double-click **ORIGIN0.exe**.
 2. Keep the console open. It prints the local address and opens your browser.
-3. In **Creative studio → Models & engines**, download the native Z-Image-Turbo pack. The first run downloads
+3. In **Creative studio → Models & engines**, select **Set up & use** on the native Z-Image-Turbo pack. The first run downloads
    **6.52 GB** of pinned model files, with visible progress and resumable downloads.
-4. Wait for **Files ready**, choose **Use model**, enter a prompt and click **Generate**.
+4. Wait for **Engine ready**, enter a prompt and click **Generate**. **Engine status**
+   shows actual setup progress and startup logs if a dependency fails.
 
 The native CPU runtime is inside the release executable. This image path needs
 **no Python, API key or paid subscription**. Keep at least 10 GB of disk space
