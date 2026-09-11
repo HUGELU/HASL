@@ -1,5 +1,9 @@
 # ORIGIN-0 / AUTO-KI · Open Creative Studio
 
+Windows preview: the owner has reported an unresolved local failure after v1.9.0.
+CI passed on the test machine; owner-device acceptance is still pending.
+See [local reproduction and repair](LOCAL_PC_REPAIR.md) before assuming a new installation will resolve it.
+
 **[Download Windows v1.9.0](https://github.com/HUGELU/HASL/releases/download/v1.9.0/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.9.0.zip)** ·
 [Standalone ORIGIN0.exe](https://github.com/HUGELU/HASL/releases/download/v1.9.0/ORIGIN0.exe) ·
 [Validation, checksums and recovery](https://github.com/HUGELU/HASL/releases/tag/v1.9.0)

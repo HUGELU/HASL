@@ -1,5 +1,7 @@
 # Published Connected Studio v1.9.0 — 11 September 2026
 
+**Owner acceptance remains unresolved.** After this release, the owner reported that the application still does not work and requested local desktop-assisted repair and a stronger coding/self-improvement foundation. No local error report or desktop connection has yet been provided. The passing CI results below remain valid for that test environment and do not establish a successful run on the owner's machine. Resume with LOCAL_PC_REPAIR.md; reproduce the actual failure before changing another executable.
+
 Release: https://github.com/HUGELU/HASL/releases/tag/v1.9.0. Exact tested application commit: 013e48806a2bb1fbf461fb3e6475c0960ab817f2, branch origin0-media-studio, PR https://github.com/HUGELU/HASL/pull/6. Passing source, Windows and publication run: https://github.com/HUGELU/HASL/actions/runs/34641641245. PR #6 remains open; main has not been merged.
 
 The complete source gate passed, including real Hugging Face and Civitai search/version/file metadata, race tests, vet, restricted container, neural finishing, exported walkthrough video, all retained browser flows, PIN recovery and Common Vision. Source evidence: artifact 10280466734, SHA-256 96fd7e26ff11d79dbb1a3bb371d2cc166b6c689314337d439f778544daa3d9f8.
