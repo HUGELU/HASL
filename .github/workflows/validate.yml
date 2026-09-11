@@ -1,7 +1,7 @@
 name: Validate source and native Windows image generation
 on:
   push:
-    branches: [main, origin0-release, origin0-finishing, origin0-common-vision]
+    branches: [main, origin0-release, origin0-finishing, origin0-common-vision, origin0-media-studio]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -71,7 +71,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import subprocess
-          for p in Path('web').glob('*.js'): subprocess.run(['node', '--check', str(p)], check=True)
+          for p in Path('web').rglob('*.js'): subprocess.run(['node', '--check', str(p)], check=True)
           PY
       - run: python3 -m unittest discover -s worker
       - name: Install isolated browser test dependencies
@@ -86,6 +86,10 @@ jobs:
         run: python3 scripts/verify_common_vision_api.py --binary release/origin0-linux-amd64
       - name: Exercise Common Vision in Chromium
         run: python3 scripts/verify_common_vision_browser.py --binary release/origin0-linux-amd64
+      - name: Exercise embedded Open Studio and white-label UI
+        run: python3 scripts/verify_media_browser.py --binary release/origin0-linux-amd64
+      - name: Check live Hugging Face and Civitai metadata through ORIGIN
+        run: python3 scripts/verify_ecosystem_api.py --binary release/origin0-linux-amd64
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -96,6 +100,8 @@ jobs:
             release/production-browser/
             release/common-vision-api/
             release/common-vision-browser/
+            release/media-browser/
+            release/ecosystem-api/
             release/container-acceptance/
             bundled/origin0-upscale-linux-amd64.zip
             upscale_manifest.json
@@ -238,4 +244,81 @@ jobs:
             release/ORIGIN0_COMMON_VISION_WINDOWS_v1.7.1.zip
             release/COMMON_VISION_SHA256SUMS.txt
             release/common-vision-windows/
+          retention-days: 14
+
+  media_windows:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-media-studio' && contains(github.event.head_commit.message, '[media-acceptance]')
+    runs-on: windows-2022
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: '1.27.1'
+          cache: false
+      - name: Prepare existing verified native runtime
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/prepare_windows_runtime.ps1
+      - name: Prepare verified finishing runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/prepare_upscaler.py
+      - run: python build.py --target windows
+      - run: go test ./...
+      - run: go vet ./...
+      - name: Real portable installation, native image, ComfyUI image and reference edit
+        run: python scripts/verify_media_windows.py --binary release/ORIGIN0.exe
+      - name: Preserve existing Common Vision cycle on this Windows executable
+        run: python scripts/verify_common_vision_api.py --binary release/ORIGIN0.exe --output release/common-vision-windows
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: origin0-open-studio-windows
+          path: |
+            release/ORIGIN0.exe
+            release/media-windows/
+            release/common-vision-windows/
+            model_catalog.json
+            upscale_manifest.json
+          retention-days: 14
+
+  media_publish:
+    needs: [source, media_windows]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/origin0-media-studio' && contains(github.event.head_commit.message, '[media-release]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Package the exact tested Windows binary and this run's evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/package_media_release.py
+      - name: Publish a new version without overwriting earlier releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          test "$(gh api repos/$GH_REPO/git/ref/heads/origin0-media-studio --jq '.object.sha')" = "$GITHUB_SHA"
+          if gh release view v1.9.0 >/dev/null 2>&1; then echo 'Release already exists; no asset will be overwritten'; exit 1; fi
+          gh release create v1.9.0 --target "$GITHUB_SHA" --draft --prerelease --title 'ORIGIN-0 v1.9.0 — Connected Studio, Stability Matrix and live model providers' --notes-file MEDIA_STUDIO.md
+          gh release upload v1.9.0 release/ORIGIN0.exe release/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.9.0.zip release/OPEN_STUDIO_SHA256SUMS.txt release/MEDIA_VALIDATION.json release/MEDIA_RECOVERY.md
+          gh release edit v1.9.0 --draft=false --prerelease
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: origin0-open-studio-release
+          path: |
+            release/ORIGIN0_OPEN_STUDIO_WINDOWS_v1.9.0.zip
+            release/ORIGIN0.exe
+            release/OPEN_STUDIO_SHA256SUMS.txt
+            release/MEDIA_VALIDATION.json
+            release/MEDIA_RECOVERY.md
           retention-days: 14

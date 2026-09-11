@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-//go:embed web/* worker/* bundled/* model_catalog.json upscale_manifest.json source_snapshot.txt source_bundle.json LOCAL_MODELS.md
+//go:embed web/* worker/* bundled/* model_catalog.json studio_catalog.json comfy_runtimes.json upscale_manifest.json source_snapshot.txt source_bundle.json LOCAL_MODELS.md
 var assets embed.FS
 
 type Concept struct {
@@ -231,6 +231,7 @@ type PersistState struct {
 }
 
 type Engine struct {
+	mediaStudio         *MediaStudio
 	commonVision        *CommonVision
 	finishing           *Finishing
 	development         *Development
@@ -406,6 +407,7 @@ func NewEngine(base string) *Engine {
 	e.development = newDevelopment(e)
 	e.studio = newConceptStudio(e)
 	e.commonVision = newCommonVision(e)
+	e.mediaStudio = newMediaStudio(e)
 	e.detectGPU()
 	e.addEvent("BOOT", "Standalone engine initialized; no external runtime required.")
 	return e
@@ -1333,8 +1335,8 @@ func (e *Engine) consoleLoop() {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	fmt.Println("============================================================")
-	fmt.Println("ORIGIN-0 v1.7.1 - LOCAL PRODUCTION AND RESEARCH")
-	fmt.Println("No Python. No pip. No external runtime.")
+	fmt.Println("ORIGIN-0 v1.9.0 - CONNECTED CREATIVE STUDIO")
+	fmt.Println("Open Models & engines for local model packs and portable ComfyUI.")
 	fmt.Println("============================================================")
 	for {
 		select {
@@ -1456,7 +1458,7 @@ func (e *Engine) view() StateView {
 	labSummary.Learning = LearningState{}
 	labSummary.Studio = ConceptState{}
 	labSummary.Jobs = nil
-	return StateView{Lab: cloneLab(labSummary), Version: "1.7.1-common-vision", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
+	return StateView{Lab: cloneLab(labSummary), Version: "1.9.0-connected-studio", Telemetry: tel, Concepts: topConcepts(e.concepts, 80), Relations: topRelations(e.relations, 80), Hypotheses: topHypotheses(e.hypotheses, 80), Questions: qs, Experiences: ex, Language: languageView(e.concepts, 80), Swarms: swarms, UIGenome: cloneUI(e.ui), UICandidates: uiCandidates, EngineGenome: e.engineGenome, EngineCandidates: engineCandidates, Reflections: refs, Approvals: approvals, Events: ev, Health: health}
 }
 
 func (e *Engine) requestApproval(kind, request, why string) {

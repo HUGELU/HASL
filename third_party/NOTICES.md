@@ -31,3 +31,21 @@ notices are retained in the packaged runtime. ORIGIN's small native host is MIT.
 Exact source/model download hashes appear in scripts/build_upscaler.py, and the
 compiled archive hash appears in upscale_manifest.json. Neither the proprietary
 Higgsfield service nor Autom8AI's MuAPI UI code is incorporated into this binary.
+
+
+## Open-Higgsfield-AI integration
+Adapted vanilla image, reference picker and cinema studio components from Autom8AI/Open-Higgsfield-AI, commit b578108936e83a3b2a5e86644057a56f8aea73a1. The upstream README declares MIT; no root LICENSE file was present in that pinned tree. The original README is preserved at web/open-studio/README.md. Modifications: local ORIGIN/ComfyUI API adapter; honest local-model catalogue; wired advanced parameters; durable outputs; branding; responsive navigation; removed mandatory hosted API key. Original cinema thumbnails and their provenance are retained in web/open-studio/src/lib/camera_assets.js.
+
+Source: https://github.com/Autom8AI/Open-Higgsfield-AI/tree/b578108936e83a3b2a5e86644057a56f8aea73a1
+
+## ComfyUI and archive support
+ComfyUI v0.35.0 is a separately downloaded portable GPL-3.0 engine. Source and licence: https://github.com/Comfy-Org/ComfyUI/tree/v0.35.0. Its embedded Python, PyTorch and other dependencies retain their respective notices. The installer preserves the entire portable environment including notices. ORIGIN does not relabel ComfyUI source as proprietary.
+
+The installer downloads the unmodified, checksum-pinned 7zr.exe 26.03 archive utility from https://github.com/ip7z/7zip/releases/tag/26.03. It does not require a system 7-Zip installation. Original source and notices: https://github.com/ip7z/7zip/tree/26.03 and https://www.7-zip.org/sdk.html. The LZMA SDK documentation identifies 7zr.exe as its reduced 7z utility and describes the SDK's public-domain terms. The broader 7-Zip licence information remains at https://github.com/ip7z/7zip/blob/26.03/DOC/License.txt; no third-party code is relicensed by ORIGIN.
+
+Windows portable extraction uses the operating system’s tar.exe (bsdtar); no additional Go dependency is introduced. White-label configuration changes display branding, not licence obligations.
+
+
+## Stability Matrix interoperability (v1.9.0)
+
+ORIGIN downloads the original, separately licensed Stability Matrix Windows binary only when requested, retains its branding and uses its public command-line/shared-library interfaces. It does not copy or relicense the Matrix source. Upstream source: https://github.com/LykosAI/StabilityMatrix (AGPL-3.0). Official binary terms: https://lykos.ai/eula. Installer pinned to v2.16.3, SHA-256 45b2c306753ea9ab9620d4c12bf72bd9778c4014bc85bebd02ccb5eb8c92851a. Hugging Face/Civitai metadata and model files retain their creators' terms; ORIGIN stores source/revision/hash provenance.

@@ -11,3 +11,7 @@ bundled/*.zip
 
 upscale-build/
 native-package/
+
+.media-tools/
+.media-meta/
+web/open-studio/assets/
